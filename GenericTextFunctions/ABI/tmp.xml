@@ -1,0 +1,10 @@
+<TreeView>
+  <TreeViewItem Name="For Each Line" OperationType="ForEachLine">
+    <TreeViewItem Name="If it contains" OperationType="GenericTextOperation" SearchForText="EAN 978" TypeName="GenericTextFunctions.TextOperations+IfItContains">
+      <TreeViewItem Name="Extract text range" OperationType="GenericTextOperation" StartPosition="4" Length="13" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
+        <TreeViewItem Name="Write Cell" OperationType="WriteCell" />
+      </TreeViewItem>
+      <TreeViewItem Name="Advance New Line" OperationType="AdvanceNewLine" />
+    </TreeViewItem>
+  </TreeViewItem>
+</TreeView>
