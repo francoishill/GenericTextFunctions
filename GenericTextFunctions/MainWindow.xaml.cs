@@ -380,6 +380,20 @@ namespace GenericTextFunctions
 						}
 					}
 					break;
+				case OperationType.Trim:
+					int tmpStartPos = textRangeToUse.Start.Value;
+					int tmpEndPos = textRangeToUse.Start.Value + textRangeToUse.Length.Value;
+					while (usedText[tmpStartPos] == ' ' && tmpStartPos < textRangeToUse.Start.Value + textRangeToUse.Length)
+						tmpStartPos++;
+					while (usedText[tmpEndPos] == ' ' && tmpEndPos >= textRangeToUse.Start.Value)
+						tmpEndPos--;
+					IntegerRange trimmedTextRange = new IntegerRange((uint)tmpStartPos, (uint)(tmpEndPos - tmpStartPos));
+					foreach (DragdropObject ddo1 in tvi.Items)
+					{
+						TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
+						ProcessTreeViewItem(tvi1, ref usedText, trimmedTextRange);
+					}
+					break;
 				case OperationType.WriteCell:
 					foreach (DragdropObject ddo1 in tvi.Items)
 					{
@@ -395,6 +409,30 @@ namespace GenericTextFunctions
 						: textRangeToUse.IsEmpty() ? ""
 						: usedText.Substring(textRangeToUse.Start.Value, textRangeToUse.Length.Value);
 					currentGridColumn++;
+					break;
+				case OperationType.GetPreviousLine:
+					int prevLineStartPos = -1;
+					int prevLineEndPos = -1;
+					for (int i = textRangeToUse.Start.Value; i >= 0; i--)
+					{
+						if (usedText[i] == '\n' && i != textRangeToUse.Start.Value)
+						{
+							if (prevLineEndPos == -1)
+								prevLineEndPos = i;
+							else
+								prevLineStartPos = i + 1;
+						}
+						if (prevLineStartPos != -1 && prevLineEndPos != -1)
+						{
+							foreach (DragdropObject ddo1 in tvi.Items)
+							{
+								TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
+								ProcessTreeViewItem(tvi1, ref usedText, new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos)));
+							}
+							//ProcessTreeViewItem(tvi, ref usedText, new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos)));
+							break;
+						}
+					}
 					break;
 				case OperationType.AdvanceNewLine:
 					dataGrid1.Rows.Add();

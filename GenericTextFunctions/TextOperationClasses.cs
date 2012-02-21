@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 
 namespace GenericTextFunctions
 {
-	public enum OperationType { ForEachLine, WriteCell, AdvanceNewLine, GenericTextOperation };
+	public enum OperationType { ForEachLine, Trim, WriteCell, GetPreviousLine, AdvanceNewLine, GenericTextOperation };
 	public class DragdropObject
 	{
 		public OperationType operationType;
@@ -169,6 +169,51 @@ namespace GenericTextFunctions
 			public ITextOperation Clone()
 			{
 				return new ExtractTextRange();
+			}
+		}
+
+		public class SplitUsingString : ITextOperation//<IntegerRange>
+		{
+			public string DisplayName { get { return "Split using string"; } }
+
+			private TextBox SplitTextOrChar = new TextBox() { Name = "SplitTextOrChar", MinWidth = 100 };
+			public Control[] InputControls { get { return new Control[] { SplitTextOrChar }; } }
+
+			public IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
+			{
+				List<IntegerRange> rangeList = new List<IntegerRange>();
+				int maxEndpoint = (int)(textRange.Start + textRange.Length);
+				int startIndex = (int)textRange.Start;
+				while (startIndex <= textRange.Start + textRange.Length)
+				{
+					int splitstringPos = UsedText.IndexOf(
+						SplitTextOrChar.Text,
+						startIndex,
+						(int)(textRange.Start + textRange.Length - startIndex));
+					if (splitstringPos == -1)
+					{
+						rangeList.Add(new IntegerRange((uint)startIndex, (uint)(maxEndpoint - startIndex)));
+						break;
+					}
+					else
+					{
+						rangeList.Add(new IntegerRange((uint)startIndex, (uint)(splitstringPos - startIndex)));
+						startIndex = splitstringPos + 1;
+					}
+				}
+
+				return rangeList.ToArray();
+
+				//return new IntegerRange[]
+				//{
+				//    //TODO: textRange.Length not used here, so if Length.Value is larger than textRange.Length it will work but is actually wrong..?
+				//    //new IntegerRange((uint)(textRange.Start + StartPosition.Value), (uint)(Length.Value))
+				//};
+			}
+
+			public ITextOperation Clone()
+			{
+				return new SplitUsingString();
 			}
 		}
 
