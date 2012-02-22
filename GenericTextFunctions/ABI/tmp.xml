@@ -4,6 +4,15 @@
       <TreeViewItem Name="Extract text range" OperationType="GenericTextOperation" StartPosition="4" Length="13" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
         <TreeViewItem Name="Write Cell" OperationType="WriteCell" />
       </TreeViewItem>
+      <TreeViewItem Name="Get Next Line" OperationType="GetNextLine">
+        <TreeViewItem Name="Split using string" OperationType="GenericTextOperation" SplitTextOrChar="/" TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
+          <TreeViewItem Name="Trim" OperationType="Trim">
+            <TreeViewItem Name="Split using string" OperationType="GenericTextOperation" SplitTextOrChar=" " TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
+              <TreeViewItem Name="Write Cell" OperationType="WriteCell" />
+            </TreeViewItem>
+          </TreeViewItem>
+        </TreeViewItem>
+      </TreeViewItem>
       <TreeViewItem Name="Get Previous Line" OperationType="GetPreviousLine">
         <TreeViewItem Name="Split using string" OperationType="GenericTextOperation" SplitTextOrChar="," TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
           <TreeViewItem Name="Trim" OperationType="Trim">

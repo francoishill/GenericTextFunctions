@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 
 namespace GenericTextFunctions
 {
-	public enum OperationType { ForEachLine, Trim, WriteCell, GetPreviousLine, AdvanceNewLine, GenericTextOperation };
+	public enum OperationType { ForEachLine, Trim, WriteCell, GetPreviousLine, GetNextLine, AdvanceNewLine, GenericTextOperation };
 	public class DragdropObject
 	{
 		public OperationType operationType;
@@ -192,7 +192,8 @@ namespace GenericTextFunctions
 						(int)(textRange.Start + textRange.Length - startIndex));
 					if (splitstringPos == -1)
 					{
-						rangeList.Add(new IntegerRange((uint)startIndex, (uint)(maxEndpoint - startIndex)));
+						if ((int)(textRange.Start + textRange.Length - startIndex) > 0)
+							rangeList.Add(new IntegerRange((uint)startIndex, (uint)(maxEndpoint - startIndex)));
 						break;
 					}
 					else

@@ -413,12 +413,12 @@ namespace GenericTextFunctions
 				case OperationType.GetPreviousLine:
 					int prevLineStartPos = -1;
 					int prevLineEndPos = -1;
-					for (int i = textRangeToUse.Start.Value; i >= 0; i--)
+					for (int i = textRangeToUse.Start.Value - 1; i >= 0; i--)
 					{
-						if (usedText[i] == '\n' && i != textRangeToUse.Start.Value)
+						if (usedText[i] == '\n')
 						{
 							if (prevLineEndPos == -1)
-								prevLineEndPos = i;
+								prevLineEndPos = i - 1;
 							else
 								prevLineStartPos = i + 1;
 						}
@@ -427,9 +427,33 @@ namespace GenericTextFunctions
 							foreach (DragdropObject ddo1 in tvi.Items)
 							{
 								TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-								ProcessTreeViewItem(tvi1, ref usedText, new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos)));
+								ProcessTreeViewItem(tvi1, ref usedText, new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos + 1)));
 							}
 							//ProcessTreeViewItem(tvi, ref usedText, new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos)));
+							break;
+						}
+					}
+					break;
+				case OperationType.GetNextLine:
+					int nextLineStartPos = -1;
+					int nextLineEndPos = -1;
+					for (int i = (int)(textRangeToUse.Start.Value + textRangeToUse.Length); i < usedText.Length; i++)
+					{
+						if (usedText[i] == '\n')
+						{
+							if (nextLineStartPos == -1)
+								nextLineStartPos = i + 1;
+							else
+								nextLineEndPos = i - 1;
+						}
+						if (nextLineStartPos != -1 && nextLineEndPos != -1)
+						{
+							foreach (DragdropObject ddo1 in tvi.Items)
+							{
+								TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
+								ProcessTreeViewItem(tvi1, ref usedText, new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)));
+							}
+							//ProcessTreeViewItem(tvi, ref usedText, new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos)));
 							break;
 						}
 					}
@@ -629,7 +653,8 @@ namespace GenericTextFunctions
 			foreach (Control control in to.InputControls)
 			{
 				string tmpControlName = xmlnode.Attributes[control.Name].Value;
-				if (string.IsNullOrWhiteSpace(tmpControlName))
+				//if (string.IsNullOrWhiteSpace(tmpControlName))
+				if (string.IsNullOrEmpty(tmpControlName))//Do not use IsNullOrWhiteSpace otherwise if for instance the SplitUsingString textbox value was " " it will warn
 					TempUserMessages.ShowWarningMessage("Could not populate control value, cannot find attribute '" + control.Name + "': " + xmlnode.OuterXml);
 				else
 				{
