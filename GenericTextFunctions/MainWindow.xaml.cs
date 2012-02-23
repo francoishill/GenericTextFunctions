@@ -144,39 +144,46 @@ namespace GenericTextFunctions
 			Type dataType = Assembly.GetExecutingAssembly().GetType(e.Data.GetFormats()[0]);//TODO: Must also support more than one format
 			if (e.Data != null && dataType != null && HasITextOperationInterface(dataType))
 			{
-				TreeViewItem dropTarget = FindDropTreeViewItem(e);
+				ITextOperation dropTarget = FindDropTreeViewItem(e) == null ? null : FindDropTreeViewItem(e).Header as ITextOperation;
 
-				ITextOperation ddo = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;//TODO: Must also support more than one format
+				ITextOperation droppedItem = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;//TODO: Must also support more than one format
 
 				bool isMoving = e.AllowedEffects == DragDropEffects.Move;
 				bool hasbeenRemoved = false;
 
+				//TODO: Must also check if the the droppedItem is not dropped unto one of its own children
+				if (droppedItem != null && droppedItem.ContainsChildInTree(ref dropTarget))
+				{
+					TempUserMessages.ShowWarningMessage("Cannot drop unto one of its own children.");
+					return;
+				}
 				if (isMoving)
 				{
-					TreeViewItem originalItem = treeView1.ContainerFromItem(ddo);
+					//if (dropTarget != null && treeView1.ContainerFromItem(droppedItem) != null && dropTarget == treeView1.ContainerFromItem(droppedItem))
+					if (dropTarget != null && droppedItem != null && dropTarget == droppedItem)
+					{
+						TempUserMessages.ShowWarningMessage("Cannot drop an item unto itsself.");
+						return;
+					}
+
+					TreeViewItem originalItem = treeView1.ContainerFromItem(droppedItem);
 					if (originalItem != null)
 					{
 						ItemsControl ic = GetSelectedTreeViewItemParent(originalItem);
 						if (ic is TreeView)
 						{
-							hasbeenRemoved = CurrentList.Remove(ddo);
+							hasbeenRemoved = CurrentList.Remove(droppedItem);
 						}
 						else
 						{
-							hasbeenRemoved = ((ic as TreeViewItem).Header as ITextOperation).Children.Remove(ddo);
+							hasbeenRemoved = ((ic as TreeViewItem).Header as ITextOperation).Children.Remove(droppedItem);
 						}
 						//if (ic != null)
 						//    ic.Items.Remove(ddo);
 					}
 				}
 
-				ITextOperation newItem = isMoving && hasbeenRemoved ? ddo : ddo.Clone();
-
-				if (dropTarget != null && treeView1.ContainerFromItem(ddo) != null && dropTarget == treeView1.ContainerFromItem(ddo))
-				{
-					TempUserMessages.ShowWarningMessage("Cannot drop an item unto itsself.");
-					return;
-				}
+				ITextOperation newItem = isMoving && hasbeenRemoved ? droppedItem : droppedItem.Clone();
 
 				if (dropTarget == null)
 				{
@@ -184,7 +191,8 @@ namespace GenericTextFunctions
 				}
 				else
 				{
-					(dropTarget.Header as ITextOperation).Children.Add(newItem);
+					//(dropTarget.Header as ITextOperation).Children.Add(newItem);
+					dropTarget.Children.Add(newItem);
 				}
 			}
 		}
@@ -286,9 +294,12 @@ namespace GenericTextFunctions
 			//    treeView1.Items.Remove(ddo);
 			//}
 
-			if (e.Data != null && e.Data.GetDataPresent(typeof(ITextOperation).FullName))
+			//if (e.Data != null && e.Data.GetDataPresent(typeof(ITextOperation).FullName))
+			Type dataType = Assembly.GetExecutingAssembly().GetType(e.Data.GetFormats()[0]);//TODO: Must also support more than one format
+			if (e.Data != null && dataType != null && HasITextOperationInterface(dataType))
 			{
-				ITextOperation ddo = e.Data.GetData(typeof(ITextOperation).FullName) as ITextOperation;
+				//ITextOperation ddo = e.Data.GetData(typeof(ITextOperation).FullName) as ITextOperation;
+				ITextOperation ddo = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;//TODO: Must also support more than one format
 
 				TreeViewItem originalItem = treeView1.ContainerFromItem(ddo);
 				if (originalItem != null)
@@ -398,10 +409,8 @@ namespace GenericTextFunctions
 			ITextOperation textop = tvi.Header as ITextOperation;
 
 			xmltextWriter.WriteStartElement("TreeViewItem");
-			//The name is actually only used for display messages (when importing the XML file)
-			xmltextWriter.WriteAttributeString("Name", textop.DisplayName);
+			xmltextWriter.WriteAttributeString("DisplayName", textop.DisplayName);
 			WriteInputControlsToXmlTextWriter(textop, xmltextWriter);
-			//Must write out all the values of the InputControls
 			if (textop != null)
 				xmltextWriter.WriteAttributeString("TypeName", textop.GetType().FullName);
 			foreach (ITextOperation ddo1 in tvi.Items)
@@ -463,7 +472,7 @@ namespace GenericTextFunctions
 
 		private void AddNodeAndSubNodesToTreeviewItem(TreeViewItem baseTreeViewItem, XmlNode xmlnode)
 		{
-			string tmpName = xmlnode.Attributes["Name"].Value;
+			string tmpName = xmlnode.Attributes["DisplayName"].Value;
 			if (string.IsNullOrWhiteSpace(tmpName))
 				TempUserMessages.ShowWarningMessage("Cannot read TreeViewItem name: " + xmlnode.OuterXml);
 			else
@@ -559,6 +568,11 @@ namespace GenericTextFunctions
 		{
 			ExportFile();
 		}
+
+		private void listBox1_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			e.Handled = true;//Becuase if the user holds down right button and move over to treeview, it starts dragging the first treeview item
+		}
 	}
 
 	#region ExtensionMethods
@@ -621,6 +635,9 @@ namespace GenericTextFunctions
 			return s;
 		}
 
+		/// <summary>
+		/// Recursively checks for a treeview Item
+		/// </summary>
 		public static TreeViewItem ContainerFromItem(this TreeView treeView, object item)
 		{
 			TreeViewItem containerThatMightContainItem = (TreeViewItem)treeView.ItemContainerGenerator.ContainerFromItem(item);
@@ -645,6 +662,21 @@ namespace GenericTextFunctions
 					return recursionResult;
 			}
 			return null;
+		}
+
+		public static void CopyControlValue(this Control control, ref Control otherControl)
+		{
+			if (control == null || otherControl == null)
+				return;
+			if (control.GetType() != otherControl.GetType())
+				return;
+
+			if (control is TextBox)
+				(otherControl as TextBox).Text = (control as TextBox).Text;
+			else if (control is NumericUpDown)
+				(otherControl as NumericUpDown).Value = (control as NumericUpDown).Value;
+			else
+				TempUserMessages.ShowWarningMessage(string.Format("Currently control of type '{0}' is currently not supported in cloning."));
 		}
 	}
 	#endregion ExtensionMethods

@@ -121,6 +121,7 @@
 				 Background='#888'
 				 SelectionChanged='listBox1_SelectionChanged'
 				 PreviewMouseLeftButtonDown='listBox1_PreviewMouseLeftButtonDown'
+				 PreviewMouseRightButtonDown='listBox1_PreviewMouseRightButtonDown'
 				 PreviewMouseLeftButtonUp='listBox1_PreviewMouseLeftButtonUp'
 				 ItemTemplate='{StaticResource operationTypeListboxItem}'
 				 AllowDrop="True"

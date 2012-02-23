@@ -7,34 +7,26 @@ using eisiWare;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 using DataGridView = System.Windows.Forms.DataGridView;
+using ITextOperation = GenericTextFunctions.TextOperations.ITextOperation;
 
 namespace GenericTextFunctions
 {
-	/*public class DragdropObject
+	#region Extension functions
+	public static class ExtensionsToTextOperations
 	{
-		public string Name { get; set; }
-		public TextOperations.ITextOperation TextOperation { get; set; }
-		public bool HasInputControls { get { return TextOperation != null && TextOperation.InputControls != null && TextOperation.InputControls.Length > 0; } }
-		public bool IsExpanded { get; set; }
-		public DragdropObject(TextOperations.ITextOperation textOperation = null)
+		public static bool ContainsChildInTree(this ITextOperation haystack, ref ITextOperation needle)
 		{
-			this.Name = textOperation.DisplayName;
-			this.TextOperation = textOperation;
-			IsExpanded = true;
+			if (haystack == null || needle == null)
+				return false;
+			foreach (ITextOperation child in haystack.Children)
+				if (child.ContainsChildInTree(ref needle))
+					return true;
+				else if (child == needle)
+					return true;
+			return false;
 		}
-
-		private IList<DragdropObject> children;
-		public IList<DragdropObject> Children
-		{
-			get { if (children == null) children = new ObservableCollection<DragdropObject>(); return children; }
-			set { children = value; }
-		}
-
-		public DragdropObject Clone()
-		{
-			return new DragdropObject(TextOperation == null ? null : TextOperation.Clone());
-		}
-	}*/
+	}
+	#endregion Extension functions
 
 	public class IntegerRange
 	{
@@ -86,7 +78,8 @@ namespace GenericTextFunctions
 			public virtual ITextOperation Clone()
 			{
 				TextOperation to = this.GetType().GetConstructor(new Type[0]).Invoke(new object[0]) as TextOperation;
-				//Must still clone the values of the InputControls
+				for (int i = 0; i < this.InputControls.Length; i++)
+					this.InputControls[i].CopyControlValue(ref to.InputControls[i]);
 				return to;
 			}
 
