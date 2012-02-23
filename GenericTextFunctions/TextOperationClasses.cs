@@ -169,7 +169,11 @@ namespace GenericTextFunctions
 				return new IntegerRange[]
 				{
 					//TODO: textRange.Length not used here, so if Length.Value is larger than textRange.Length it will work but is actually wrong..?
-					new IntegerRange((uint)(textRange.Start + StartPosition.Value), (uint)(Length.Value))
+					new IntegerRange(
+						(uint)(textRange.Start + StartPosition.Value),
+						(uint)(Length.Value == -1
+						? (int)(textRange.Start.Value + textRange.Length.Value - textRange.Start - StartPosition.Value)
+						: Length.Value))
 				};
 			}
 		}
@@ -243,6 +247,43 @@ namespace GenericTextFunctions
 			}
 		}
 
+		public class GetPreviousNumberOfLines : TextOperation
+		{
+			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
+			public override Control[] InputControls { get { return new Control[] { NumberOfLines }; } }
+
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				List<IntegerRange> ranges = new List<IntegerRange>();
+
+				int startSeekPos = textRange.Start.Value -1;
+				for (int j = 0; j < NumberOfLines.Value; j++)
+				{
+					int nextLineStartPos = -1;
+					int nextLineEndPos = -1;
+					for (int i = startSeekPos; i >= 0; i--)
+					{
+						if (UsedText[i] == '\n')
+						{
+							if (nextLineEndPos == -1)
+								nextLineEndPos = i - 1;
+							else
+								nextLineStartPos = i + 1;
+						}
+
+						if (nextLineStartPos != -1 && nextLineEndPos != -1)
+						{
+							//return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
+							ranges.Add(new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)));
+							startSeekPos = i;
+							break;
+						}
+					}
+				}
+				return ranges.ToArray();
+			}
+		}
+
 		public class GetNextLine : TextOperation
 		{
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
@@ -262,6 +303,42 @@ namespace GenericTextFunctions
 						return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
 				}
 				return new IntegerRange[0];
+			}
+		}
+
+		public class GetNextNumberOfLines : TextOperation
+		{
+			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
+			public override Control[] InputControls { get { return new Control[] { NumberOfLines }; } }
+
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				List<IntegerRange> ranges = new List<IntegerRange>();
+
+				int startSeekPos = (int)(textRange.Start + textRange.Length);
+				for (int j = 0; j < NumberOfLines.Value; j++)
+				{
+					int nextLineStartPos = -1;
+					int nextLineEndPos = -1;
+					for (int i = startSeekPos; i < UsedText.Length; i++)
+					{
+						if (UsedText[i] == '\n')
+						{
+							if (nextLineStartPos == -1)
+								nextLineStartPos = i + 1;
+							else
+								nextLineEndPos = i - 1;
+						}
+						if (nextLineStartPos != -1 && nextLineEndPos != -1)
+						{
+							//return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
+							ranges.Add(new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)));
+							startSeekPos = i;
+							break;
+						}
+					}
+				}
+				return ranges.ToArray();
 			}
 		}
 

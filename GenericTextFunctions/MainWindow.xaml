@@ -144,7 +144,7 @@
 				<winforms:RichTextBox x:Name='richTextBox1'
 									  WordWrap='False' />
 			</WindowsFormsHost>
-			<GridSplitter Width='1' Panel.ZIndex='100'/>
+			<GridSplitter Width='5' Panel.ZIndex='100'/>
 			<DockPanel Grid.Column='1'>
 				<DockPanel DockPanel.Dock='Bottom'
 						   Margin='0,0,3,10'>

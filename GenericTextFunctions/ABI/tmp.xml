@@ -1,26 +1,33 @@
 <TreeView>
-  <TreeViewItem DisplayName="For each line" TypeName="GenericTextFunctions.TextOperations+ForEachLine">
-    <TreeViewItem DisplayName="If it contains" SearchForText="EAN 978" TypeName="GenericTextFunctions.TextOperations+IfItContains">
-      <TreeViewItem DisplayName="Extract text range" StartPosition="4" Length="13" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
-        <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell"/>
+  <TreeViewItem DisplayName="For Each Line" TypeName="GenericTextFunctions.TextOperations+ForEachLine">
+    <TreeViewItem DisplayName="If It Contains" SearchForText="EAN 978" TypeName="GenericTextFunctions.TextOperations+IfItContains">
+      <TreeViewItem DisplayName="Extract Text Range" StartPosition="4" Length="13" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
+        <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
       </TreeViewItem>
       <TreeViewItem DisplayName="Get Next Line" TypeName="GenericTextFunctions.TextOperations+GetNextLine">
-        <TreeViewItem DisplayName="Split using string" SplitTextOrChar="/" TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
+        <TreeViewItem DisplayName="Split Using String" SplitTextOrChar="/" TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
           <TreeViewItem DisplayName="Trim" TypeName="GenericTextFunctions.TextOperations+Trim">
-            <TreeViewItem DisplayName="Split using string" SplitTextOrChar=" " TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
-              <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell"/>
+            <TreeViewItem DisplayName="Split Using String" SplitTextOrChar=" " TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
+              <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
             </TreeViewItem>
           </TreeViewItem>
         </TreeViewItem>
       </TreeViewItem>
       <TreeViewItem DisplayName="Get Previous Line" TypeName="GenericTextFunctions.TextOperations+GetPreviousLine">
-        <TreeViewItem DisplayName="Split using string" SplitTextOrChar="," TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
+        <TreeViewItem DisplayName="Split Using String" SplitTextOrChar="," TypeName="GenericTextFunctions.TextOperations+SplitUsingString">
           <TreeViewItem DisplayName="Trim" TypeName="GenericTextFunctions.TextOperations+Trim">
-            <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell"/>
+            <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
           </TreeViewItem>
         </TreeViewItem>
       </TreeViewItem>
-      <TreeViewItem DisplayName="Advance New Line" TypeName="GenericTextFunctions.TextOperations+AdvanceNewLine"/>
+      <TreeViewItem DisplayName="Get Next Number Of Lines" NumberOfLines="7" TypeName="GenericTextFunctions.TextOperations+GetNextNumberOfLines">
+        <TreeViewItem DisplayName="If It Contains" SearchForText="Series: " TypeName="GenericTextFunctions.TextOperations+IfItContains">
+          <TreeViewItem DisplayName="Extract Text Range" StartPosition="8" Length="-1" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
+            <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
+          </TreeViewItem>
+        </TreeViewItem>
+      </TreeViewItem>
+      <TreeViewItem DisplayName="Advance New Line" TypeName="GenericTextFunctions.TextOperations+AdvanceNewLine" />
     </TreeViewItem>
   </TreeViewItem>
 </TreeView>
