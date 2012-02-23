@@ -13,6 +13,8 @@ using eisiWare;
 using System.Windows.Threading;
 using System.Threading;
 using System.Diagnostics;
+using ITextOperation = GenericTextFunctions.TextOperations.ITextOperation;
+using System.Reflection;
 
 namespace GenericTextFunctions
 {
@@ -22,7 +24,7 @@ namespace GenericTextFunctions
 	public partial class MainWindow : Window
 	{
 		TextFeedbackEventHandler textFeedbackEvent;
-		ObservableCollection<DragdropObject> CurrentList = new ObservableCollection<DragdropObject>();
+		ObservableCollection<ITextOperation> CurrentList = new ObservableCollection<ITextOperation>();
 
 		public MainWindow()
 		{
@@ -36,6 +38,9 @@ namespace GenericTextFunctions
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
+			Type type = Assembly.GetExecutingAssembly().GetType("GenericTextFunctions.TextOperations+IfItContains");
+
+
 			LoadDragdropItems();
 
 			richTextBox1.LoadFile(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions\GenericTextFunctions\ABI\ABI word files - Copy.rtf");
@@ -47,54 +52,28 @@ namespace GenericTextFunctions
 			treeView1.ItemsSource = CurrentList;
 		}
 
-		private ObservableCollection<DragdropObject> dragdropObjectList;
-		private ObservableCollection<DragdropObject> DragdropObjectList
+		private ObservableCollection<ITextOperation> dragdropObjectList;
+		private ObservableCollection<ITextOperation> DragdropObjectList
 		{
 			get
 			{
 				if (dragdropObjectList == null)
-					dragdropObjectList = new ObservableCollection<DragdropObject>();
-				foreach (OperationType ot in Enum.GetValues(typeof(OperationType)))
-					if (ot != OperationType.GenericTextOperation)
-						dragdropObjectList.Add(new DragdropObject(ot));//operationTypesWithTextInput.Contains(ot)));
+					dragdropObjectList = new ObservableCollection<ITextOperation>();
 
 				foreach (Type to in typeof(TextOperations).GetNestedTypes())
 				{
 					if (to.IsClass && !to.IsAbstract)
 						if (to.GetInterface(typeof(TextOperations.ITextOperation).Name) != null)//<dynamic>).Name) != null)
 						{
-							TextOperations.ITextOperation tmpobj = to.GetConstructor(new Type[0]).Invoke(new object[0]) as TextOperations.ITextOperation;
-							dragdropObjectList.Add(new DragdropObject(OperationType.GenericTextOperation, tmpobj));
-							//if (tmpobj as TextOperations.ITextOperation != null)//<string> != null)
-							//    AddDragDrop<string>(tmpobj);
-							//else if (tmpobj as TextOperations.ITextOperation<IntegerRange> != null)
-							//    AddDragDrop<IntegerRange>(tmpobj);
-							//foreach (Type t in to.GetInterfaces())
-							//    if (t == typeof(TextOperations.ITextOperation<string>))
-							//        dragdropObjectList.Add(new DragdropObject(
-							//            OperationType.GenericTextOperation,
-							//            t.Name,
-							//            (t as TextOperations.ITextOperation<string>).InputControls));
+							ITextOperation tmpobj = to.GetConstructor(new Type[0]).Invoke(new object[0]) as ITextOperation;
+							dragdropObjectList.Add(tmpobj);
+							//dragdropObjectList.Add(new ITextOperation(tmpobj));
 						}
 				}
 
 				return dragdropObjectList;
 			}
 		}
-
-		//private void AddDragDrop<T>(object obj)
-		//{
-		//    TextOperations.ITextOperation<T> s = (TextOperations.ITextOperation<T>)obj;
-		//    dragdropObjectList.Add(new DragdropObject(OperationType.GenericTextOperation, s));
-		//}
-		//private List<OperationType> operationTypesWithTextInput = new List<OperationType>()
-		//{
-		//    OperationType.ExtractTextFrom,
-		//    OperationType.ForNumberOfCharacters,
-		//    OperationType.LookInNextLinesFor,
-		//    OperationType.LookInPreviousLinesFor,
-		//    OperationType.SearchFor
-		//};
 
 		private void MenuitemExtractISBNdata_Click(object sender, RoutedEventArgs e)
 		{
@@ -148,13 +127,26 @@ namespace GenericTextFunctions
 			return null;
 		}
 
+		private bool HasITextOperationInterface(Type typeToCheck)
+		{
+			if (typeToCheck == null)
+				return false;
+			Type[] interfaces = typeToCheck.GetInterfaces();
+			foreach (Type i in interfaces)
+				if (i.FullName.Equals(typeof(ITextOperation).FullName, StringComparison.InvariantCultureIgnoreCase))
+					return true;
+			return false;
+		}
+
 		private void treeView1_Drop(object sender, DragEventArgs e)
 		{
-			if (e.Data != null && e.Data.GetDataPresent(typeof(DragdropObject).FullName))
+			//if (e.Data != null && e.Data.GetDataPresent(typeof(ITextOperation).FullName))
+			Type dataType = Assembly.GetExecutingAssembly().GetType(e.Data.GetFormats()[0]);//TODO: Must also support more than one format
+			if (e.Data != null && dataType != null && HasITextOperationInterface(dataType))
 			{
 				TreeViewItem dropTarget = FindDropTreeViewItem(e);
 
-				DragdropObject ddo = e.Data.GetData(typeof(DragdropObject).FullName) as DragdropObject;
+				ITextOperation ddo = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;//TODO: Must also support more than one format
 
 				bool isMoving = e.AllowedEffects == DragDropEffects.Move;
 				bool hasbeenRemoved = false;
@@ -171,14 +163,14 @@ namespace GenericTextFunctions
 						}
 						else
 						{
-							hasbeenRemoved = ((ic as TreeViewItem).Header as DragdropObject).Children.Remove(ddo);
+							hasbeenRemoved = ((ic as TreeViewItem).Header as ITextOperation).Children.Remove(ddo);
 						}
 						//if (ic != null)
 						//    ic.Items.Remove(ddo);
 					}
 				}
 
-				DragdropObject newItem = isMoving && hasbeenRemoved ? ddo : ddo.Clone();
+				ITextOperation newItem = isMoving && hasbeenRemoved ? ddo : ddo.Clone();
 
 				if (dropTarget != null && treeView1.ContainerFromItem(ddo) != null && dropTarget == treeView1.ContainerFromItem(ddo))
 				{
@@ -192,7 +184,7 @@ namespace GenericTextFunctions
 				}
 				else
 				{
-					(dropTarget.Header as DragdropObject).Children.Add(newItem);
+					(dropTarget.Header as ITextOperation).Children.Add(newItem);
 				}
 			}
 		}
@@ -242,7 +234,7 @@ namespace GenericTextFunctions
 		private void treeView1_PreviewMouseDown(object sender, MouseButtonEventArgs e)
 		{
 			TreeView parent = (TreeView)sender;
-			DragdropObject ddo = GetDataFromItemsControl(parent, e.GetPosition(parent)) as DragdropObject;
+			ITextOperation ddo = GetDataFromItemsControl(parent, e.GetPosition(parent)) as ITextOperation;
 			if (ddo == null)
 				return;
 			(parent.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem).IsSelected = true;
@@ -269,7 +261,7 @@ namespace GenericTextFunctions
 		private void StartDrag(MouseEventArgs e)
 		{
 			_IsDragging = true;
-			DragdropObject ddo = this.treeView1.SelectedItem as DragdropObject;
+			ITextOperation ddo = this.treeView1.SelectedItem as ITextOperation;
 			//DataObject data = null;
 
 			//data = new DataObject("inadt", temp);
@@ -294,9 +286,9 @@ namespace GenericTextFunctions
 			//    treeView1.Items.Remove(ddo);
 			//}
 
-			if (e.Data != null && e.Data.GetDataPresent(typeof(DragdropObject).FullName))
+			if (e.Data != null && e.Data.GetDataPresent(typeof(ITextOperation).FullName))
 			{
-				DragdropObject ddo = e.Data.GetData(typeof(DragdropObject).FullName) as DragdropObject;
+				ITextOperation ddo = e.Data.GetData(typeof(ITextOperation).FullName) as ITextOperation;
 
 				TreeViewItem originalItem = treeView1.ContainerFromItem(ddo);
 				if (originalItem != null)
@@ -305,7 +297,7 @@ namespace GenericTextFunctions
 					if (ic is TreeView)
 						CurrentList.Remove(ddo);
 					else
-						((ic as TreeViewItem).Header as DragdropObject).Children.Remove(ddo);
+						((ic as TreeViewItem).Header as ITextOperation).Children.Remove(ddo);
 					//if (ic != null)
 					//    ic.Items.Remove(ddo);
 				}
@@ -335,7 +327,7 @@ namespace GenericTextFunctions
 
 				string richTextboxText = richTextBox1.Text;
 
-				foreach (DragdropObject ddo in treeView1.Items)
+				foreach (ITextOperation ddo in treeView1.Items)
 				{
 					TreeViewItem tvi = treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem;
 					ProcessTreeViewItem(tvi, ref richTextboxText, IntegerRange.Full);
@@ -352,132 +344,31 @@ namespace GenericTextFunctions
 		private void ProcessTreeViewItem(TreeViewItem tvi, ref string usedText, IntegerRange textRangeToUse)
 		{
 			if (tvi == null) return;
-			DragdropObject ddo = tvi.Header as DragdropObject;
-			if (ddo == null) return;
+			ITextOperation textop = tvi.Header as ITextOperation;
+			if (textop == null) return;
 
-			switch (ddo.operationType)
+			if (textop is TextOperations.ITextOperation)//<string>)
 			{
-				case OperationType.ForEachLine:
-					//foreach (string line in richTextBox1.Lines)
-					int nextStartPos = 0;
-					for (int chr = 0; chr < usedText.Length; chr++)
-					{
-						if (chr < nextStartPos)
-							continue;
-						//if (chr > 0 && chr < usedText.Length - 1 && (usedText.Substring(chr, 2) == Environment.NewLine || chr == usedText.Length - 2))
-						if (chr > 0 && (usedText[chr] == '\n' || chr == usedText.Length - 1))
-						{
-							//string lineText = usedText.Substring(nextStartPos, chr - 1);
-							IntegerRange lineRange = new IntegerRange((uint)nextStartPos, (uint)(chr - nextStartPos));
+				TextOperations.ITextOperation textOperation = textop as TextOperations.ITextOperation;
+				TextOperations.TextOperationWithDataGridView toWithDg = textOperation as TextOperations.TextOperationWithDataGridView;
 
-							foreach (DragdropObject ddo1 in tvi.Items)
-							{
-								TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-								ProcessTreeViewItem(tvi1, ref usedText, lineRange);
-							}
+				if (toWithDg != null)
+					toWithDg.SetDataGridAndProperties(ref dataGrid1, currentGridColumn, currentGridRow);
 
-							nextStartPos = chr + 1;//2;
-						}
-					}
-					break;
-				case OperationType.Trim:
-					int tmpStartPos = textRangeToUse.Start.Value;
-					int tmpEndPos = textRangeToUse.Start.Value + textRangeToUse.Length.Value;
-					while (usedText[tmpStartPos] == ' ' && tmpStartPos < textRangeToUse.Start.Value + textRangeToUse.Length)
-						tmpStartPos++;
-					while (usedText[tmpEndPos] == ' ' && tmpEndPos >= textRangeToUse.Start.Value)
-						tmpEndPos--;
-					IntegerRange trimmedTextRange = new IntegerRange((uint)tmpStartPos, (uint)(tmpEndPos - tmpStartPos));
-					foreach (DragdropObject ddo1 in tvi.Items)
+				IntegerRange[] rangesToUse = textOperation.ProcessText(ref usedText, textRangeToUse);
+
+				if (toWithDg != null)
+				{
+					currentGridColumn = toWithDg.GetNewColumnIndex();
+					currentGridRow = toWithDg.GetNewRowIndex();
+				}
+
+				foreach (IntegerRange ir in rangesToUse)
+					foreach (ITextOperation ddo1 in tvi.Items)
 					{
 						TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-						ProcessTreeViewItem(tvi1, ref usedText, trimmedTextRange);
+						ProcessTreeViewItem(tvi1, ref usedText, ir);
 					}
-					break;
-				case OperationType.WriteCell:
-					foreach (DragdropObject ddo1 in tvi.Items)
-					{
-						TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-						ProcessTreeViewItem(tvi1, ref usedText, textRangeToUse);
-					}
-					if (dataGrid1.ColumnCount <= currentGridColumn)
-						dataGrid1.Columns.Add("Column" + (currentGridColumn + 1), "Column" + (currentGridColumn + 1));
-					if (dataGrid1.Rows.Count == 0)
-						dataGrid1.Rows.Add();
-					dataGrid1[currentGridColumn, currentGridRow].Value =
-						textRangeToUse.IsFull() ? usedText
-						: textRangeToUse.IsEmpty() ? ""
-						: usedText.Substring(textRangeToUse.Start.Value, textRangeToUse.Length.Value);
-					currentGridColumn++;
-					break;
-				case OperationType.GetPreviousLine:
-					int prevLineStartPos = -1;
-					int prevLineEndPos = -1;
-					for (int i = textRangeToUse.Start.Value - 1; i >= 0; i--)
-					{
-						if (usedText[i] == '\n')
-						{
-							if (prevLineEndPos == -1)
-								prevLineEndPos = i - 1;
-							else
-								prevLineStartPos = i + 1;
-						}
-						if (prevLineStartPos != -1 && prevLineEndPos != -1)
-						{
-							foreach (DragdropObject ddo1 in tvi.Items)
-							{
-								TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-								ProcessTreeViewItem(tvi1, ref usedText, new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos + 1)));
-							}
-							//ProcessTreeViewItem(tvi, ref usedText, new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos)));
-							break;
-						}
-					}
-					break;
-				case OperationType.GetNextLine:
-					int nextLineStartPos = -1;
-					int nextLineEndPos = -1;
-					for (int i = (int)(textRangeToUse.Start.Value + textRangeToUse.Length); i < usedText.Length; i++)
-					{
-						if (usedText[i] == '\n')
-						{
-							if (nextLineStartPos == -1)
-								nextLineStartPos = i + 1;
-							else
-								nextLineEndPos = i - 1;
-						}
-						if (nextLineStartPos != -1 && nextLineEndPos != -1)
-						{
-							foreach (DragdropObject ddo1 in tvi.Items)
-							{
-								TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-								ProcessTreeViewItem(tvi1, ref usedText, new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)));
-							}
-							//ProcessTreeViewItem(tvi, ref usedText, new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos)));
-							break;
-						}
-					}
-					break;
-				case OperationType.AdvanceNewLine:
-					dataGrid1.Rows.Add();
-					currentGridRow++;
-					currentGridColumn = 0;
-					break;
-				case OperationType.GenericTextOperation:
-					if (ddo.TextOperation is TextOperations.ITextOperation)//<string>)
-					{
-						TextOperations.ITextOperation textOperation = ddo.TextOperation as TextOperations.ITextOperation;
-						IntegerRange[] rangesToUse = textOperation.ProcessText(ref usedText, textRangeToUse);
-						foreach (IntegerRange ir in rangesToUse)
-							foreach (DragdropObject ddo1 in tvi.Items)
-							{
-								TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-								ProcessTreeViewItem(tvi1, ref usedText, ir);
-							}
-					}
-					break;
-				default:
-					break;
 			}
 		}
 
@@ -495,7 +386,7 @@ namespace GenericTextFunctions
 				using (var xw = new XmlTextWriter(sfd.FileName, System.Text.Encoding.ASCII) { Formatting = Formatting.Indented })
 				{
 					xw.WriteStartElement("TreeView");
-					foreach (DragdropObject ddo in treeView1.Items)
+					foreach (ITextOperation ddo in treeView1.Items)
 						WriteTreeViewItemToXmlTextWriter(treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem, xw);
 					xw.WriteEndElement();
 				}
@@ -504,27 +395,26 @@ namespace GenericTextFunctions
 
 		private void WriteTreeViewItemToXmlTextWriter(TreeViewItem tvi, XmlTextWriter xmltextWriter)
 		{
-			DragdropObject ddo = tvi.Header as DragdropObject;
+			ITextOperation textop = tvi.Header as ITextOperation;
 
 			xmltextWriter.WriteStartElement("TreeViewItem");
 			//The name is actually only used for display messages (when importing the XML file)
-			xmltextWriter.WriteAttributeString("Name", ddo.Name);
-			xmltextWriter.WriteAttributeString("OperationType", ddo.operationType.ToString());
-			WriteInputControlsToXmlTextWriter(ddo, xmltextWriter);
+			xmltextWriter.WriteAttributeString("Name", textop.DisplayName);
+			WriteInputControlsToXmlTextWriter(textop, xmltextWriter);
 			//Must write out all the values of the InputControls
-			if (ddo.TextOperation != null)
-				xmltextWriter.WriteAttributeString("TypeName", ddo.TextOperation.GetType().FullName);
-			foreach (DragdropObject ddo1 in tvi.Items)
+			if (textop != null)
+				xmltextWriter.WriteAttributeString("TypeName", textop.GetType().FullName);
+			foreach (ITextOperation ddo1 in tvi.Items)
 				WriteTreeViewItemToXmlTextWriter(tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem, xmltextWriter);
 			xmltextWriter.WriteEndElement();
 		}
 
-		private void WriteInputControlsToXmlTextWriter(DragdropObject ddo, XmlTextWriter xmltextWriter)
+		private void WriteInputControlsToXmlTextWriter(ITextOperation textop, XmlTextWriter xmltextWriter)
 		{
 			List<string> tmpNameList = new List<string>();
-			if (ddo == null || ddo.TextOperation == null || !ddo.HasInputControls)
+			if (textop == null  || !textop.HasInputControls)
 				return;
-			foreach (Control control in ddo.TextOperation.InputControls)
+			foreach (Control control in textop.InputControls)
 			{
 				string InputControlValue = "";
 				if (control is TextBox)
@@ -535,7 +425,7 @@ namespace GenericTextFunctions
 					TempUserMessages.ShowWarningMessage("Input control type not supported: " + control.GetType().Name);
 
 				if (string.IsNullOrWhiteSpace(control.Name))
-					TempUserMessages.ShowWarningMessage("No name found for InputControl in " + ddo.Name);
+					TempUserMessages.ShowWarningMessage("No name found for InputControl in " + textop.DisplayName);
 				else if (tmpNameList.Contains(control.Name))
 					TempUserMessages.ShowWarningMessage("Duplicate control names found: " + control.Name);
 				else
@@ -574,73 +464,41 @@ namespace GenericTextFunctions
 		private void AddNodeAndSubNodesToTreeviewItem(TreeViewItem baseTreeViewItem, XmlNode xmlnode)
 		{
 			string tmpName = xmlnode.Attributes["Name"].Value;
-			string operationType = xmlnode.Attributes["OperationType"].Value;
-			OperationType ot;
 			if (string.IsNullOrWhiteSpace(tmpName))
 				TempUserMessages.ShowWarningMessage("Cannot read TreeViewItem name: " + xmlnode.OuterXml);
-			else if (string.IsNullOrWhiteSpace(operationType))
-				TempUserMessages.ShowWarningMessage("Cannot read TreeViewItem operation type: " + xmlnode.OuterXml);
-			else if (!Enum.TryParse<OperationType>(operationType, out ot))
-				TempUserMessages.ShowWarningMessage("Could not obtain operation type (ENUM) from string = " + operationType);
 			else
 			{
-				if (ot != OperationType.GenericTextOperation)
+				string typeFullName = xmlnode.Attributes["TypeName"].Value;
+				if (string.IsNullOrWhiteSpace(typeFullName))
+					TempUserMessages.ShowWarningMessage("Cannot read TypeName from '" + tmpName + "' node: " + xmlnode.OuterXml);
+				else
 				{
-					DragdropObject ddo = new DragdropObject(ot);
-					if (baseTreeViewItem == null)
-					{
-						//treeView1.Items.Add(ddo);
-						CurrentList.Add(ddo);
-						treeView1.UpdateLayout();
-						XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
-						foreach (XmlNode node in subnodes)
-							AddNodeAndSubNodesToTreeviewItem(treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem, node);
-					}
+					TextOperations.ITextOperation to = GetNewITextOperationFromTypeFullName(typeFullName);
+					if (to == null)
+						TempUserMessages.ShowWarningMessage("Could not create new object from FullName = " + typeFullName);
 					else
 					{
-						//baseTreeViewItem.Items.Add(ddo);
-						(baseTreeViewItem.Header as DragdropObject).Children.Add(ddo);
-						baseTreeViewItem.IsExpanded = true;
-						baseTreeViewItem.UpdateLayout();
-						XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
-						foreach (XmlNode node in subnodes)
-							AddNodeAndSubNodesToTreeviewItem(baseTreeViewItem.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem, node);
-					}
-				}
-				else// if (ot == OperationType.GenericTextOperation)
-				{
-					string typeFullName = xmlnode.Attributes["TypeName"].Value;
-					if (string.IsNullOrWhiteSpace(typeFullName))
-						TempUserMessages.ShowWarningMessage("Cannot read TypeName from '" + tmpName + "' node: " + xmlnode.OuterXml);
-					else
-					{
-						TextOperations.ITextOperation to = GetNewITextOperationFromTypeFullName(typeFullName);
-						if (to == null)
-							TempUserMessages.ShowWarningMessage("Could not create new object from FullName = " + typeFullName);
+						PopulateInputControlsFromXmlNode(to, xmlnode);
+						//ITextOperation ddo = new ITextOperation(to);
+
+						if (baseTreeViewItem == null)
+						{
+							//treeView1.Items.Add(ddo);
+							CurrentList.Add(to);
+							treeView1.UpdateLayout();
+							XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
+							foreach (XmlNode node in subnodes)
+								AddNodeAndSubNodesToTreeviewItem(treeView1.ItemContainerGenerator.ContainerFromItem(to) as TreeViewItem, node);
+						}
 						else
 						{
-							PopulateInputControlsFromXmlNode(to, xmlnode);
-							DragdropObject ddo = new DragdropObject(ot, to);
-
-							if (baseTreeViewItem == null)
-							{
-								//treeView1.Items.Add(ddo);
-								CurrentList.Add(ddo);
-								treeView1.UpdateLayout();
-								XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
-								foreach (XmlNode node in subnodes)
-									AddNodeAndSubNodesToTreeviewItem(treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem, node);
-							}
-							else
-							{
-								//baseTreeViewItem.Items.Add(ddo);
-								(baseTreeViewItem.Header as DragdropObject).Children.Add(ddo);
-								baseTreeViewItem.IsExpanded = true;
-								baseTreeViewItem.UpdateLayout();
-								XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
-								foreach (XmlNode node in subnodes)
-									AddNodeAndSubNodesToTreeviewItem(baseTreeViewItem.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem, node);
-							}
+							//baseTreeViewItem.Items.Add(ddo);
+							(baseTreeViewItem.Header as ITextOperation).Children.Add(to);
+							baseTreeViewItem.IsExpanded = true;
+							baseTreeViewItem.UpdateLayout();
+							XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
+							foreach (XmlNode node in subnodes)
+								AddNodeAndSubNodesToTreeviewItem(baseTreeViewItem.ItemContainerGenerator.ContainerFromItem(to) as TreeViewItem, node);
 						}
 					}
 				}

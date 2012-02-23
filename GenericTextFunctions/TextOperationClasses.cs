@@ -6,27 +6,20 @@ using System.Windows.Controls;
 using eisiWare;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using DataGridView = System.Windows.Forms.DataGridView;
 
 namespace GenericTextFunctions
 {
-	public enum OperationType { ForEachLine, Trim, WriteCell, GetPreviousLine, GetNextLine, AdvanceNewLine, GenericTextOperation };
-	public class DragdropObject
+	/*public class DragdropObject
 	{
-		public OperationType operationType;
 		public string Name { get; set; }
 		public TextOperations.ITextOperation TextOperation { get; set; }
 		public bool HasInputControls { get { return TextOperation != null && TextOperation.InputControls != null && TextOperation.InputControls.Length > 0; } }
 		public bool IsExpanded { get; set; }
-		public DragdropObject(OperationType operationType, TextOperations.ITextOperation textOperation = null)//, string Name, Control[] InputControls)
+		public DragdropObject(TextOperations.ITextOperation textOperation = null)
 		{
-			this.operationType = operationType;
-			if (textOperation == null)
-				this.Name = operationType.ToString().InsertSpacesBeforeCamelCase();
-			else
-			{
-				this.Name = textOperation.DisplayName;
-				this.TextOperation = textOperation;
-			}
+			this.Name = textOperation.DisplayName;
+			this.TextOperation = textOperation;
 			IsExpanded = true;
 		}
 
@@ -39,9 +32,9 @@ namespace GenericTextFunctions
 
 		public DragdropObject Clone()
 		{
-			return new DragdropObject(operationType, TextOperation == null ? null : TextOperation.Clone());
+			return new DragdropObject(TextOperation == null ? null : TextOperation.Clone());
 		}
-	}
+	}*/
 
 	public class IntegerRange
 	{
@@ -64,100 +57,121 @@ namespace GenericTextFunctions
 		public static IntegerRange Full { get { return new IntegerRange(0, null); } }
 	}
 
-	//public class TextInLinesRange
-	//{
-	//    public int? LineNumber;
-	//    public IntegerRange RangeOnLine;
-	//    private TextInLinesRange(int? LineNumber, IntegerRange RangeOnLine = null)
-	//    {
-	//        this.LineNumber = LineNumber;
-	//        this.RangeOnLine = RangeOnLine;
-	//    }
-	//    public TextInLinesRange(uint LineNumber, IntegerRange RangeOnLine)
-	//    {
-	//        this.LineNumber = (int)LineNumber;
-	//        this.RangeOnLine = RangeOnLine;
-	//    }
-	//    public static TextInLinesRange Empty { get { return new TextInLinesRange(null); } }
-	//}
-
 	public static class TextOperations
 	{
 		public interface ITextOperation
 		{
 			string DisplayName { get; }
 			Control[] InputControls { get; }
+			bool HasInputControls { get; }
+			/// <summary>
+			/// The actual processing of the text.
+			/// </summary>
+			/// <param name="UsedText">The reference to the string object to use.</param>
+			/// <param name="textRange">The range in this string to use.</param>
+			/// <param name="AdditionalObject">An additional object used in the routine.</param>
+			/// <returns>Returns the resulting ranges of the text as a result of its processing.</returns>
 			IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange);
 			ITextOperation Clone();
+			IList<ITextOperation> Children { get; set; }
+			bool IsExpanded { get; set; }
 		}
-		//public interface ITextOperation<T> : ITextOperation
-		//{
-		//    //bool HasInputControls { get; }
-		//    TextInLinesRange[] ProcessText(ref string UsedText, TextInLinesRange textRange, T InputParam);
-		//}
 
-		//public abstract class TextOperation<T> : ITextOperation<T>
-		//{
-		//    public abstract string DisplayName { get; }
-
-		//    public abstract Control[] InputControls { get; }
-
-		//    public bool HasInputControls { get { return InputControls != null & InputControls.Length > 0; } }
-
-		//    public abstract TextInLinesRange[] ProcessText(ref string[] Lines, TextInLinesRange textRange, T InputParam);
-		//}
-
-		//ForEachLine, SearchFor, ExtractTextRange, ExtractTextFrom, ForNumberOfCharacters, LookInPreviousLinesFor, LookInNextLinesFor
-		//public class ForEachLine : ITextOperation<string>
-		//{
-		//    public string DisplayName { get { return "For each line"; } }
-
-		//    public Control[] InputControls { get { return new Control[0]; } }
-
-		//    public string ProcessText(string InputText)
-		//    {
-		//        throw new NotImplementedException();
-		//    }
-		//}
-
-		public class IfItContains : ITextOperation//<string>//TextOperation<string>
+		public abstract class TextOperation : ITextOperation
 		{
-			public string DisplayName { get { return "If it contains"; } }
+			public virtual string DisplayName { get { return this.GetType().Name.InsertSpacesBeforeCamelCase(); } }
+			public virtual Control[] InputControls { get { return new Control[0]; } }
+			public bool HasInputControls { get { return InputControls != null && InputControls.Length > 0; } }
+			public abstract IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange);
+			public virtual ITextOperation Clone()
+			{
+				TextOperation to = this.GetType().GetConstructor(new Type[0]).Invoke(new object[0]) as TextOperation;
+				//Must still clone the values of the InputControls
+				return to;
+			}
 
+			private IList<ITextOperation> children;
+			public IList<ITextOperation> Children
+			{
+				get { if (children == null) children = new ObservableCollection<ITextOperation>(); return children; }
+				set { children = value; }
+			}
+
+			public TextOperation()
+			{
+				IsExpanded = true;
+			}
+
+			public bool IsExpanded { get; set; }
+		}
+
+		public abstract class TextOperationWithDataGridView : TextOperation
+		{
+			public override abstract IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange);
+
+			public DataGridView dataGridView { protected get; set; }
+			protected int CurrentGridColumn { get; set; }
+			protected int CurrentGridRow { get; set; }
+			public void SetDataGridAndProperties(ref DataGridView dataGridView, int CurrentGridColumn, int CurrentGridRow)
+			{
+				this.dataGridView = dataGridView;
+				this.CurrentGridColumn = CurrentGridColumn;
+				this.CurrentGridRow = CurrentGridRow;
+			}
+			public int GetNewColumnIndex() { return CurrentGridColumn; }
+			public int GetNewRowIndex() { return CurrentGridRow; }
+		}
+
+		public class ForEachLine : TextOperation
+		{
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				List<IntegerRange> tmpRanges = new List<IntegerRange>();
+
+				int nextStartPos = 0;
+				for (int chr = 0; chr < UsedText.Length; chr++)
+				{
+					if (chr < nextStartPos)
+						continue;
+					//if (chr > 0 && chr < usedText.Length - 1 && (usedText.Substring(chr, 2) == Environment.NewLine || chr == usedText.Length - 2))
+					if (chr > 0 && (UsedText[chr] == '\n' || chr == UsedText.Length - 1))
+					{
+						tmpRanges.Add(new IntegerRange((uint)nextStartPos, (uint)(chr - nextStartPos)));
+						IntegerRange lineRange = new IntegerRange((uint)nextStartPos, (uint)(chr - nextStartPos));
+
+						nextStartPos = chr + 1;//2;
+					}
+				}
+
+				return tmpRanges.ToArray();
+			}
+		}
+
+		public class IfItContains : TextOperation
+		{
 			private TextBox SearchForText = new TextBox() { Name = "SearchForText", MinWidth = 100 };
-			public Control[] InputControls { get { return new Control[] { SearchForText }; } }
+			public override Control[] InputControls { get { return new Control[] { SearchForText }; } }
 
-			public IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, string InputParam)
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, string InputParam)
 			{
 				if (
 					(textRange.IsFull() ? UsedText
 						: textRange.IsEmpty() ? ""
 						: UsedText.Substring(textRange.Start.Value, textRange.Length.Value))
 
-					//UsedText.Substring(
-					//textRange.Start.Value, textRange.Length.Value)
-
 					.Contains(SearchForText.Text))
 					return new IntegerRange[] { textRange };
 				else return new IntegerRange[0];
 			}
-
-
-			public ITextOperation Clone()
-			{
-				return new IfItContains();
-			}
 		}
 
-		public class ExtractTextRange : ITextOperation//<IntegerRange>
+		public class ExtractTextRange : TextOperation
 		{
-			public string DisplayName { get { return "Extract text range"; } }
-
 			private NumericUpDown StartPosition = new NumericUpDown() { Name = "StartPosition", Width = 50, MinValue = 0 };
 			private NumericUpDown Length = new NumericUpDown() { Name = "Length", Width = 50, MinValue = 0 };
-			public Control[] InputControls { get { return new Control[] { StartPosition, Length }; } }
+			public override Control[] InputControls { get { return new Control[] { StartPosition, Length }; } }
 
-			public IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
 			{
 				return new IntegerRange[]
 				{
@@ -165,21 +179,14 @@ namespace GenericTextFunctions
 					new IntegerRange((uint)(textRange.Start + StartPosition.Value), (uint)(Length.Value))
 				};
 			}
-
-			public ITextOperation Clone()
-			{
-				return new ExtractTextRange();
-			}
 		}
 
-		public class SplitUsingString : ITextOperation//<IntegerRange>
+		public class SplitUsingString : TextOperation
 		{
-			public string DisplayName { get { return "Split using string"; } }
-
 			private TextBox SplitTextOrChar = new TextBox() { Name = "SplitTextOrChar", MinWidth = 100 };
-			public Control[] InputControls { get { return new Control[] { SplitTextOrChar }; } }
+			public override Control[] InputControls { get { return new Control[] { SplitTextOrChar }; } }
 
-			public IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
 			{
 				List<IntegerRange> rangeList = new List<IntegerRange>();
 				int maxEndpoint = (int)(textRange.Start + textRange.Length);
@@ -204,31 +211,97 @@ namespace GenericTextFunctions
 				}
 
 				return rangeList.ToArray();
-
-				//return new IntegerRange[]
-				//{
-				//    //TODO: textRange.Length not used here, so if Length.Value is larger than textRange.Length it will work but is actually wrong..?
-				//    //new IntegerRange((uint)(textRange.Start + StartPosition.Value), (uint)(Length.Value))
-				//};
-			}
-
-			public ITextOperation Clone()
-			{
-				return new SplitUsingString();
 			}
 		}
 
-		//public class ExtractTextFrom : ITextOperation<string>
-		//{
-		//    public string DisplayName { get { return "Extract text from"; } }
+		public class Trim : TextOperation
+		{
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				int tmpStartPos = textRange.Start.Value;
+				int tmpEndPos = textRange.Start.Value + textRange.Length.Value;
+				while (UsedText[tmpStartPos] == ' ' && tmpStartPos < textRange.Start.Value + textRange.Length)
+					tmpStartPos++;
+				while (UsedText[tmpEndPos] == ' ' && tmpEndPos >= textRange.Start.Value)
+					tmpEndPos--;
+				return new IntegerRange[] { new IntegerRange((uint)tmpStartPos, (uint)(tmpEndPos - tmpStartPos)) };
+			}
+		}
 
-		//    private TextBox StartExtractingFrom = new TextBox();
-		//    public Control[] InputControls { get { return new Control[] { StartExtractingFrom }; } }
+		public class GetPreviousLine : TextOperation
+		{
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				int prevLineStartPos = -1;
+				int prevLineEndPos = -1;
+				for (int i = textRange.Start.Value - 1; i >= 0; i--)
+				{
+					if (UsedText[i] == '\n')
+					{
+						if (prevLineEndPos == -1)
+							prevLineEndPos = i - 1;
+						else
+							prevLineStartPos = i + 1;
+					}
+					if (prevLineStartPos != -1 && prevLineEndPos != -1)
+						return new IntegerRange[] { new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos + 1)) };
+				}
+				return new IntegerRange[0];
+			}
+		}
 
-		//    public TextInLinesRange[] ProcessText(ref string UsedText, TextInLinesRange textRange, string InputParam)
-		//    {
-		//        throw new NotImplementedException();
-		//    }
-		//}
+		public class GetNextLine : TextOperation
+		{
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				int nextLineStartPos = -1;
+				int nextLineEndPos = -1;
+				for (int i = (int)(textRange.Start.Value + textRange.Length); i < UsedText.Length; i++)
+				{
+					if (UsedText[i] == '\n')
+					{
+						if (nextLineStartPos == -1)
+							nextLineStartPos = i + 1;
+						else
+							nextLineEndPos = i - 1;
+					}
+					if (nextLineStartPos != -1 && nextLineEndPos != -1)
+						return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
+				}
+				return new IntegerRange[0];
+			}
+		}
+
+		public class WriteCell : TextOperationWithDataGridView
+		{
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				if (dataGridView == null)
+					return new IntegerRange[] { textRange };
+				if (dataGridView.ColumnCount <= CurrentGridColumn)
+					dataGridView.Columns.Add("Column" + (CurrentGridColumn + 1), "Column" + (CurrentGridColumn + 1));
+				if (dataGridView.Rows.Count == 0)
+					dataGridView.Rows.Add();
+				dataGridView[CurrentGridColumn, CurrentGridRow].Value =
+					textRange.IsFull() ? UsedText
+					: textRange.IsEmpty() ? ""
+					: UsedText.Substring(textRange.Start.Value, textRange.Length.Value);
+				CurrentGridColumn++;
+				return new IntegerRange[] { textRange };
+			}
+		}
+
+		public class AdvanceNewLine : TextOperationWithDataGridView
+		{
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				if (dataGridView == null)
+					return new IntegerRange[] { textRange };
+				dataGridView.Rows.Add();
+				CurrentGridRow++;
+				CurrentGridColumn = 0;
+				return new IntegerRange[] { textRange };
+			}
+		}
 	}
 }

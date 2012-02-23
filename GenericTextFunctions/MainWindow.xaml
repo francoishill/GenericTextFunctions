@@ -33,7 +33,7 @@
 									  Offset="1" />
 					</LinearGradientBrush>
 				</Border.Background>
-				<TextBlock Text='{Binding Name}'
+				<TextBlock Text='{Binding DisplayName}'
 						   FontSize='20' />
 			</Border>
 		</DataTemplate>
@@ -56,13 +56,13 @@
 					</LinearGradientBrush>
 				</Border.Background>
 				<WrapPanel VerticalAlignment='Center'>
-					<TextBlock Text='{Binding Name}'
-							   FontSize='20' />
+					<TextBlock Text='{Binding DisplayName}'
+							   FontSize='14' />
 					<ListBox Margin='10,0,0,0'
 							 AllowDrop='True'
 							 VerticalAlignment='Center'
 							 VerticalContentAlignment='Center'
-							 ItemsSource='{Binding Path=TextOperation.InputControls}'
+							 ItemsSource='{Binding InputControls}'
 							 Visibility='{Binding HasInputControls, Converter={StaticResource trueVisibleFalseCollapsedConverter}}'
 							 BorderThickness='0'
 							 Background='Transparent'>
@@ -115,6 +115,7 @@
 				 Grid.ColumnSpan='10'
 				 Name='listBox1'
 				 MinHeight='25'
+				 Margin='10,0'
 				 Height='auto'
 				 Padding='0,0,0,5'
 				 Background='#888'
@@ -131,17 +132,18 @@
 			</ListBox.ItemsPanel>
 		</ListBox>
 		<Grid Grid.Row='2'
-			  Grid.ColumnSpan='10'>
+			  Grid.ColumnSpan='10'
+			  Margin='10'>
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width='400' />
-				<ColumnDefinition />
-				<ColumnDefinition MinWidth='500' />
+				<ColumnDefinition Width='1.5*' />
+				<ColumnDefinition Width='*'/>
+				<ColumnDefinition Width='2*'/>
 			</Grid.ColumnDefinitions>
-			<WindowsFormsHost Grid.Column='0'>
+			<WindowsFormsHost Grid.Column='0' Margin='0,0,5,0'>
 				<winforms:RichTextBox x:Name='richTextBox1'
 									  WordWrap='False' />
 			</WindowsFormsHost>
-			<GridSplitter Width='5' />
+			<GridSplitter Width='1' Panel.ZIndex='100'/>
 			<DockPanel Grid.Column='1'>
 				<DockPanel DockPanel.Dock='Bottom'
 						   Margin='0,0,3,10'>
