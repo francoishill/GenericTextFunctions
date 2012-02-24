@@ -15,6 +15,7 @@ using System.Threading;
 using System.Diagnostics;
 using ITextOperation = GenericTextFunctions.TextOperations.ITextOperation;
 using System.Reflection;
+using System.Linq;
 
 namespace GenericTextFunctions
 {
@@ -58,17 +59,27 @@ namespace GenericTextFunctions
 			get
 			{
 				if (dragdropObjectList == null)
-					dragdropObjectList = new ObservableCollection<ITextOperation>();
-
-				foreach (Type to in typeof(TextOperations).GetNestedTypes())
 				{
-					if (to.IsClass && !to.IsAbstract)
-						if (to.GetInterface(typeof(TextOperations.ITextOperation).Name) != null)//<dynamic>).Name) != null)
-						{
-							ITextOperation tmpobj = to.GetConstructor(new Type[0]).Invoke(new object[0]) as ITextOperation;
-							dragdropObjectList.Add(tmpobj);
-							//dragdropObjectList.Add(new ITextOperation(tmpobj));
-						}
+					ObservableCollection<ITextOperation> tmpList = new ObservableCollection<ITextOperation>();
+
+					foreach (Type to in typeof(TextOperations).GetNestedTypes())
+					{
+						if (to.IsClass && !to.IsAbstract)
+							if (to.GetInterface(typeof(TextOperations.ITextOperation).Name) != null)//<dynamic>).Name) != null)
+							{
+								ITextOperation tmpobj = to.GetConstructor(new Type[0]).Invoke(new object[0]) as ITextOperation;
+								tmpList.Add(tmpobj);
+								//dragdropObjectList.Add(new ITextOperation(tmpobj));
+							}
+					}
+
+					var sortedOC = from item in tmpList
+								   orderby item.DisplayName
+								   select item;
+
+					dragdropObjectList = new ObservableCollection<ITextOperation>(sortedOC);
+					tmpList = null;
+					sortedOC = null;
 				}
 
 				return dragdropObjectList;
@@ -421,7 +432,7 @@ namespace GenericTextFunctions
 		private void WriteInputControlsToXmlTextWriter(ITextOperation textop, XmlTextWriter xmltextWriter)
 		{
 			List<string> tmpNameList = new List<string>();
-			if (textop == null  || !textop.HasInputControls)
+			if (textop == null || !textop.HasInputControls)
 				return;
 			foreach (Control control in textop.InputControls)
 			{
@@ -430,6 +441,8 @@ namespace GenericTextFunctions
 					InputControlValue = (control as TextBox).Text;
 				else if (control is NumericUpDown)
 					InputControlValue = (control as NumericUpDown).Value.ToString();
+				else if (control is CheckBox)
+					InputControlValue = (control as CheckBox).IsChecked == null ? false.ToString() : (control as CheckBox).IsChecked.Value.ToString();
 				else
 					TempUserMessages.ShowWarningMessage("Input control type not supported: " + control.GetType().Name);
 
@@ -519,23 +532,34 @@ namespace GenericTextFunctions
 		{
 			foreach (Control control in to.InputControls)
 			{
-				string tmpControlName = xmlnode.Attributes[control.Name].Value;
+				string tmpControlValue = xmlnode.Attributes[control.Name].Value;
 				//if (string.IsNullOrWhiteSpace(tmpControlName))
-				if (string.IsNullOrEmpty(tmpControlName))//Do not use IsNullOrWhiteSpace otherwise if for instance the SplitUsingString textbox value was " " it will warn
+				if (string.IsNullOrEmpty(tmpControlValue))//Do not use IsNullOrWhiteSpace otherwise if for instance the SplitUsingString textbox value was " " it will warn
 					TempUserMessages.ShowWarningMessage("Could not populate control value, cannot find attribute '" + control.Name + "': " + xmlnode.OuterXml);
 				else
 				{
 					if (control is TextBox)
-						(control as TextBox).Text = tmpControlName;
+						(control as TextBox).Text = tmpControlValue;
 					else if (control is NumericUpDown)
 					{
 						int intval;
-						if (!int.TryParse(tmpControlName, out intval))
+						if (!int.TryParse(tmpControlValue, out intval))
 							TempUserMessages.ShowWarningMessage("Invalid numeric value for " + control.Name + ": " + xmlnode.OuterXml);
 						else
 						{
 							(control as NumericUpDown).Value = intval;
 						}
+					}
+					else if (control is CheckBox)
+					{
+						bool boolval;
+						if (!bool.TryParse(tmpControlValue, out boolval))
+						{
+							TempUserMessages.ShowWarningMessage("Invalid string for checkbox checked (boolean) value: '" + tmpControlValue + "', will use false");
+							(control as CheckBox).IsChecked = false;
+						}
+						else
+							(control as CheckBox).IsChecked = boolval;
 					}
 					else
 						TempUserMessages.ShowWarningMessage("Input control type not supported: " + control.GetType().Name);
@@ -675,6 +699,8 @@ namespace GenericTextFunctions
 				(otherControl as TextBox).Text = (control as TextBox).Text;
 			else if (control is NumericUpDown)
 				(otherControl as NumericUpDown).Value = (control as NumericUpDown).Value;
+			else if (control is CheckBox)
+				(otherControl as CheckBox).IsChecked = (control as CheckBox).IsChecked;
 			else
 				TempUserMessages.ShowWarningMessage(string.Format("Currently control of type '{0}' is currently not supported in cloning."));
 		}
@@ -688,6 +714,58 @@ namespace GenericTextFunctions
 		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
 			return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class AddToConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if ((!(value is double) && !(value is int))
+				|| (!(parameter is double) && !(parameter is int)))
+			{
+				double tmpdouble;
+				if (parameter is string && double.TryParse(parameter as string, out tmpdouble))
+					parameter = tmpdouble;
+				else
+					return value;
+			}
+
+			if (value is double)
+				return (double)((double)value + (parameter is double ? (double)parameter : (int)parameter));
+			else// if (value is int)
+				return (int)((int)value + (parameter is double ? (double)parameter : (int)parameter));
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class SubtractFromConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if ((!(value is double) && !(value is int))
+				|| (!(parameter is double) && !(parameter is int)))
+			{
+				double tmpdouble;
+				if (parameter is string && double.TryParse(parameter as string, out tmpdouble))
+					parameter = tmpdouble;
+				else
+					return value;
+			}
+
+			if (value is double)
+				return (double)((double)value - (parameter is double ? (double)parameter : (int)parameter));
+			else// if (value is int)
+				return (int)((int)value - (parameter is double ? (double)parameter : (int)parameter));
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

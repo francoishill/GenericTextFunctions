@@ -256,31 +256,79 @@ namespace GenericTextFunctions
 			{
 				List<IntegerRange> ranges = new List<IntegerRange>();
 
-				int startSeekPos = textRange.Start.Value -1;
+				int startSeekPos = textRange.Start.Value - 1;
 				for (int j = 0; j < NumberOfLines.Value; j++)
 				{
-					int nextLineStartPos = -1;
-					int nextLineEndPos = -1;
+					int prevLineStartPos = -1;
+					int prevLineEndPos = -1;
 					for (int i = startSeekPos; i >= 0; i--)
 					{
 						if (UsedText[i] == '\n')
 						{
-							if (nextLineEndPos == -1)
-								nextLineEndPos = i - 1;
+							if (prevLineEndPos == -1)
+								prevLineEndPos = i - 1;
 							else
-								nextLineStartPos = i + 1;
+								prevLineStartPos = i + 1;
 						}
 
-						if (nextLineStartPos != -1 && nextLineEndPos != -1)
+						if (prevLineStartPos != -1 && prevLineEndPos != -1)
 						{
 							//return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
-							ranges.Add(new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)));
+							ranges.Add(new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos + 1)));
 							startSeekPos = i;
 							break;
 						}
 					}
 				}
 				return ranges.ToArray();
+			}
+		}
+
+		public class IfPreviousNumberOfLinesContains : TextOperation
+		{
+			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
+			private TextBox SearchForText = new TextBox() { Name = "SearchForText", MinWidth = 100 };
+			private CheckBox ReturnBlankIfNotFound = new CheckBox() { Name = "ReturnBlankIfNotFound", IsChecked = true };
+			public override Control[] InputControls { get { return new Control[] { NumberOfLines, SearchForText, ReturnBlankIfNotFound }; } }
+
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, string InputParam)
+			{
+				int startSeekPos = textRange.Start.Value - 1;
+				for (int j = 0; j < NumberOfLines.Value; j++)
+				{
+					int prevLineStartPos = -1;
+					int prevLineEndPos = -1;
+					for (int i = startSeekPos; i >= 0; i--)
+					{
+						if (UsedText[i] == '\n')
+						{
+							if (prevLineEndPos == -1)
+								prevLineEndPos = i - 1;
+							else
+								prevLineStartPos = i + 1;
+						}
+
+						if (prevLineStartPos != -1 && prevLineEndPos != -1)
+						{
+							//return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
+							if (UsedText.Substring(prevLineStartPos, prevLineEndPos - prevLineStartPos + 1).Contains(SearchForText.Text))
+								return new IntegerRange[] { new IntegerRange((uint)prevLineStartPos, (uint)(prevLineEndPos - prevLineStartPos + 1)) };
+						}
+					}
+				}
+
+				if (ReturnBlankIfNotFound.IsChecked == true)
+					return new IntegerRange[] { IntegerRange.Empty };
+				else
+					return new IntegerRange[0];
+				//if (
+				//    (textRange.IsFull() ? UsedText
+				//        : textRange.IsEmpty() ? ""
+				//        : UsedText.Substring(textRange.Start.Value, textRange.Length.Value))
+
+				//    .Contains(SearchForText.Text))
+				//    return new IntegerRange[] { textRange };
+				//else return new IntegerRange[0];
 			}
 		}
 
@@ -342,6 +390,47 @@ namespace GenericTextFunctions
 			}
 		}
 
+		public class IfNextNumberOfLinesContains : TextOperation
+		{
+			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
+			private TextBox SearchForText = new TextBox() { Name = "SearchForText", MinWidth = 100 };
+			private CheckBox ReturnBlankIfNotFound = new CheckBox() { Name = "ReturnBlankIfNotFound", IsChecked = true };
+			public override Control[] InputControls { get { return new Control[] { NumberOfLines, SearchForText, ReturnBlankIfNotFound }; } }
+
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, string InputParam)
+			{
+				int startSeekPos = (int)(textRange.Start + textRange.Length);
+				for (int j = 0; j < NumberOfLines.Value; j++)
+				{
+					int nextLineStartPos = -1;
+					int nextLineEndPos = -1;
+					for (int i = startSeekPos; i < UsedText.Length; i++)
+					{
+						if (UsedText[i] == '\n')
+						{
+							if (nextLineStartPos == -1)
+								nextLineStartPos = i + 1;
+							else
+								nextLineEndPos = i - 1;
+						}
+						if (nextLineStartPos != -1 && nextLineEndPos != -1)
+						{
+							//return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
+							if (UsedText.Substring(nextLineStartPos, nextLineEndPos - nextLineStartPos + 1).Contains(SearchForText.Text))
+								return new IntegerRange[] { new IntegerRange((uint)nextLineStartPos, (uint)(nextLineEndPos - nextLineStartPos + 1)) };
+							startSeekPos = i;
+							break;
+						}
+					}
+				}
+
+				if (ReturnBlankIfNotFound.IsChecked == true)
+					return new IntegerRange[] { new IntegerRange(0, 0) };
+				else
+					return new IntegerRange[0];
+			}
+		}
+
 		public class WriteCell : TextOperationWithDataGridView
 		{
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
@@ -355,7 +444,7 @@ namespace GenericTextFunctions
 				dataGridView[CurrentGridColumn, CurrentGridRow].Value =
 					textRange.IsFull() ? UsedText
 					: textRange.IsEmpty() ? ""
-					: UsedText.Substring(textRange.Start.Value, textRange.Length.Value);
+					: UsedText.Substring(textRange.Start.Value, textRange.Length.Value >= 0 ? textRange.Length.Value : 0);
 				CurrentGridColumn++;
 				return new IntegerRange[] { textRange };
 			}

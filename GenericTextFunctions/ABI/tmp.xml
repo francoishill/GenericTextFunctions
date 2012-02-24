@@ -20,11 +20,14 @@
           </TreeViewItem>
         </TreeViewItem>
       </TreeViewItem>
-      <TreeViewItem DisplayName="Get Next Number Of Lines" NumberOfLines="7" TypeName="GenericTextFunctions.TextOperations+GetNextNumberOfLines">
-        <TreeViewItem DisplayName="If It Contains" SearchForText="Series: " TypeName="GenericTextFunctions.TextOperations+IfItContains">
-          <TreeViewItem DisplayName="Extract Text Range" StartPosition="8" Length="-1" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
-            <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
-          </TreeViewItem>
+      <TreeViewItem DisplayName="If Next Number Of Lines Contains" NumberOfLines="10" SearchForText="Series:" ReturnBlankIfNotFound="True" TypeName="GenericTextFunctions.TextOperations+IfNextNumberOfLinesContains">
+        <TreeViewItem DisplayName="Extract Text Range" StartPosition="8" Length="-1" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
+          <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
+        </TreeViewItem>
+      </TreeViewItem>
+      <TreeViewItem DisplayName="If Next Number Of Lines Contains" NumberOfLines="10" SearchForText="Imprint:" ReturnBlankIfNotFound="True" TypeName="GenericTextFunctions.TextOperations+IfNextNumberOfLinesContains">
+        <TreeViewItem DisplayName="Extract Text Range" StartPosition="8" Length="-1" TypeName="GenericTextFunctions.TextOperations+ExtractTextRange">
+          <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
         </TreeViewItem>
       </TreeViewItem>
       <TreeViewItem DisplayName="Advance New Line" TypeName="GenericTextFunctions.TextOperations+AdvanceNewLine" />
