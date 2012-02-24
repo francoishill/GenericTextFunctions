@@ -3,6 +3,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local='clr-namespace:GenericTextFunctions'
 		xmlns:winforms='clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms'
+		xmlns:avalon="clr-namespace:AvalonDock;assembly=AvalonDock"
 		Title="MainWindow"
 		Height="350"
 		Width="1225"
@@ -79,17 +80,18 @@
 			</Border>
 		</HierarchicalDataTemplate>
 	</Window.Resources>
-	<Grid>
-		<Grid.ColumnDefinitions>
+	<!--<Grid>-->
+	<DockPanel LastChildFill='True'>
+		<!--<Grid.ColumnDefinitions>
 			<ColumnDefinition />
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
 			<RowDefinition Height='auto' />
 			<RowDefinition Height='auto' />
 			<RowDefinition />
-		</Grid.RowDefinitions>
+		</Grid.RowDefinitions>-->
 		<Menu IsMainMenu="True"
-			  Grid.ColumnSpan='10'
+			  DockPanel.Dock='Top'
 			  VerticalAlignment='Top'
 			  Height='auto'
 			  Margin='0,0,0,10'>
@@ -114,28 +116,121 @@
 			<MenuItem Header="_Window" />
 			<MenuItem Header="_Help" />-->
 		</Menu>
-		<ListBox Grid.Row='1'
-				 Grid.ColumnSpan='10'
-				 Name='listBox1'
-				 MinHeight='25'
-				 Margin='10,0'
-				 Height='auto'
-				 Padding='0,0,0,5'
-				 
-				 SelectionChanged='listBox1_SelectionChanged'
-				 PreviewMouseLeftButtonDown='listBox1_PreviewMouseLeftButtonDown'
-				 PreviewMouseRightButtonDown='listBox1_PreviewMouseRightButtonDown'
-				 PreviewMouseLeftButtonUp='listBox1_PreviewMouseLeftButtonUp'
-				 ItemTemplate='{StaticResource operationTypeListboxItem}'
-				 AllowDrop="True"
-				 Drop="listBox1_Drop">
-			<ListBox.ItemsPanel>
-				<ItemsPanelTemplate>
-					<WrapPanel Width='{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox, AncestorLevel=1}, Converter={StaticResource subtractFromConverter}, ConverterParameter=10}' />
-				</ItemsPanelTemplate>
-			</ListBox.ItemsPanel>
-		</ListBox>
-		<Grid Grid.Row='2'
+		
+		<Expander ExpandDirection='Down' DockPanel.Dock='Top'>
+			<ListBox Grid.Row='1'
+					 Grid.ColumnSpan='10'
+					 Name='listBox1'
+					 Margin='10,0'
+					 Height='auto'
+					 Padding='0,0,0,5'
+					 SelectionChanged='listBox1_SelectionChanged'
+					 PreviewMouseLeftButtonDown='listBox1_PreviewMouseLeftButtonDown'
+					 PreviewMouseRightButtonDown='listBox1_PreviewMouseRightButtonDown'
+					 PreviewMouseLeftButtonUp='listBox1_PreviewMouseLeftButtonUp'
+					 ItemTemplate='{StaticResource operationTypeListboxItem}'
+					 AllowDrop="True"
+					 Drop="listBox1_Drop">
+				<ListBox.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Width='{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox, AncestorLevel=1}, Converter={StaticResource subtractFromConverter}, ConverterParameter=10}' />
+					</ItemsPanelTemplate>
+				</ListBox.ItemsPanel>
+			</ListBox>
+		</Expander>
+		
+		<avalon:DockingManager>
+			<avalon:ResizingPanel>
+				<avalon:DockablePane>
+					<avalon:DockableContent Title='Input rich text'>
+						<WindowsFormsHost Grid.Column='0'
+										  Margin='0,0,5,0'>
+							<winforms:RichTextBox x:Name='richTextBox1'
+												  WordWrap='False' />
+						</WindowsFormsHost>
+					</avalon:DockableContent>
+					<avalon:DockableContent Title='Processing tree'>
+						<DockPanel Grid.Column='1'>
+							<DockPanel DockPanel.Dock='Bottom'
+									   Margin='0,0,3,10'>
+								<Button Name='buttonImportFile'
+										DockPanel.Dock='Left'
+										Background='Transparent'
+										Padding='5'
+										UseLayoutRounding='True'
+										Foreground='Green'
+										FontWeight='Bold'
+										FontSize='14'
+										Click='buttonImportFile_Click'>Import File
+
+								</Button>
+								<Button Name='buttonExportFile'
+										DockPanel.Dock='Right'
+										HorizontalAlignment='Right'
+										Background='Transparent'
+										Padding='5'
+										UseLayoutRounding='True'
+										Foreground='Orange'
+										FontWeight='Bold'
+										FontSize='14'
+										Click='buttonExportFile_Click'>Export File</Button>
+							</DockPanel>
+							<TreeView Name='treeView1'
+									  SelectedItemChanged='treeView1_SelectedItemChanged'
+									  ItemTemplate='{StaticResource operationTypeTreeviewItem}'
+									  AllowDrop='True'
+									  Drop='treeView1_Drop'
+									  PreviewMouseDown='treeView1_PreviewMouseDown'
+									  PreviewMouseMove='treeView1_PreviewMouseMove'>
+								<TreeView.ItemContainerStyle>
+									<Style TargetType="TreeViewItem">
+										<Setter Property="IsExpanded"
+												Value="{Binding IsExpanded}" />
+									</Style>
+
+								</TreeView.ItemContainerStyle>
+							</TreeView>
+						</DockPanel>
+					</avalon:DockableContent>
+				</avalon:DockablePane>
+				<avalon:DocumentPane>
+					
+					
+					<avalon:DockableContent Title='Output grid'>
+						<DockPanel Grid.Column='2'
+								   LastChildFill='True'
+								   Margin='10'>
+							<Button Name='buttonProcessNow'
+									DockPanel.Dock='Top'
+									HorizontalAlignment='Left'
+									Content='_Process now'
+									Padding='10,3'
+									Click='buttonProcessNow_Click' />
+							<Border DockPanel.Dock='Bottom'
+									BorderBrush='#333'
+									BorderThickness='1'
+									CornerRadius='3'
+									Padding='3'
+									Background='Transparent'>
+								<StatusBar Background='Transparent'>
+									<StatusBarItem Name='statusBarItem1' />
+									<StatusBarItem Content='Test'
+												   Visibility='Hidden' />
+								</StatusBar>
+							</Border>
+							<WindowsFormsHost Grid.Column='2'
+											  Margin='0,10'>
+								<winforms:DataGridView x:Name='dataGrid1'
+													   AllowUserToAddRows='False'
+													   AutoSizeColumnsMode='AllCellsExceptHeader' />
+							</WindowsFormsHost>
+						</DockPanel>
+					</avalon:DockableContent>
+					
+				</avalon:DocumentPane>
+			</avalon:ResizingPanel>
+		</avalon:DockingManager>
+		<!--<Grid Grid.Row='2'
 			  Grid.ColumnSpan='10'
 			  Margin='10'>
 			<Grid.ColumnDefinitions>
@@ -143,82 +238,11 @@
 				<ColumnDefinition Width='1*'/>
 				<ColumnDefinition Width='1.5*'/>
 			</Grid.ColumnDefinitions>
-			<WindowsFormsHost Grid.Column='0' Margin='0,0,5,0'>
-				<winforms:RichTextBox x:Name='richTextBox1'
-									  WordWrap='False' />
-			</WindowsFormsHost>
 			<GridSplitter Width='5' Panel.ZIndex='100'/>
-			<DockPanel Grid.Column='1'>
-				<DockPanel DockPanel.Dock='Bottom'
-						   Margin='0,0,3,10'>
-					<Button Name='buttonImportFile'
-							DockPanel.Dock='Left'
-							Background='Transparent'
-							Padding='5'
-							UseLayoutRounding='True'
-							Foreground='Green'
-							FontWeight='Bold'
-							FontSize='14'
-							Click='buttonImportFile_Click'>Import File
-
-					</Button>
-					<Button Name='buttonExportFile'
-							DockPanel.Dock='Right'
-							HorizontalAlignment='Right'
-							Background='Transparent'
-							Padding='5'
-							UseLayoutRounding='True'
-							Foreground='Orange'
-							FontWeight='Bold'
-							FontSize='14'
-							Click='buttonExportFile_Click'>Export File</Button>
-				</DockPanel>
-				<TreeView Name='treeView1'
-						  SelectedItemChanged='treeView1_SelectedItemChanged'
-						  ItemTemplate='{StaticResource operationTypeTreeviewItem}'
-						  AllowDrop='True'
-						  Drop='treeView1_Drop'
-						  PreviewMouseDown='treeView1_PreviewMouseDown'
-						  PreviewMouseMove='treeView1_PreviewMouseMove'>
-					<TreeView.ItemContainerStyle>
-						<Style TargetType="TreeViewItem">
-							<Setter Property="IsExpanded"
-									Value="{Binding IsExpanded}" />
-						</Style>
-
-					</TreeView.ItemContainerStyle>
-				</TreeView>
-			</DockPanel>
+			
 			<GridSplitter Grid.Column='1'
-						  Width='3' />
-			<DockPanel Grid.Column='2'
-					   LastChildFill='True'
-					   Margin='10'>
-				<Button Name='buttonProcessNow'
-						DockPanel.Dock='Top'
-						HorizontalAlignment='Left'
-						Content='_Process now'
-						Padding='10,3'
-						Click='buttonProcessNow_Click' />
-				<Border DockPanel.Dock='Bottom'
-						BorderBrush='#333'
-						BorderThickness='1'
-						CornerRadius='3'
-						Padding='3'
-						Background='Transparent'>
-					<StatusBar Background='Transparent'>
-						<StatusBarItem Name='statusBarItem1' />
-						<StatusBarItem Content='Test'
-									   Visibility='Hidden' />
-					</StatusBar>
-				</Border>
-				<WindowsFormsHost Grid.Column='2'
-								  Margin='0,10'>
-					<winforms:DataGridView x:Name='dataGrid1'
-										   AllowUserToAddRows='False'
-										   AutoSizeColumnsMode='AllCellsExceptHeader' />
-				</WindowsFormsHost>
-			</DockPanel>
+						  Width='3' />-->
+			
 			<!--<DataGrid Grid.Column='2'
 					  Name='dataGrid1'
 					  Margin='0,30,0,0' />-->
@@ -227,6 +251,7 @@
 						 Margin='0,30,0,0'
 						 IsReadOnly='True'
 						 IsReadOnlyCaretVisible='True'/>-->
-		</Grid>
-	</Grid>
+		<!--</Grid>-->
+	</DockPanel>
+	<!--</Grid>-->
 </Window>
