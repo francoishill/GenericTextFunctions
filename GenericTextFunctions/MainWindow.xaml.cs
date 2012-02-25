@@ -39,12 +39,12 @@ namespace GenericTextFunctions
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			Type type = Assembly.GetExecutingAssembly().GetType("GenericTextFunctions.TextOperations+IfItContains");
-
-
 			LoadDragdropItems();
 
 			richTextBox1.LoadFile(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions\GenericTextFunctions\ABI\ABI word files - Copy.rtf");
+
+			dockingManager1.UpdateLayout();
+			//TODO: WTF sometimes the dock does not display until minimized/maximized or clicked on the client area.
 		}
 
 		private void LoadDragdropItems()

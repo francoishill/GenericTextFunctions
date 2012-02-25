@@ -138,8 +138,8 @@
 				</ListBox.ItemsPanel>
 			</ListBox>
 		</Expander>
-		
-		<avalon:DockingManager>
+
+		<avalon:DockingManager x:Name='dockingManager1'>
 			<avalon:ResizingPanel>
 				<avalon:DockablePane>
 					<avalon:DockableContent Title='Input rich text'>
