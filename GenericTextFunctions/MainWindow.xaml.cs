@@ -39,12 +39,10 @@ namespace GenericTextFunctions
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			LoadDragdropItems();
-
 			richTextBox1.LoadFile(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions\GenericTextFunctions\ABI\ABI word files - Copy.rtf");
 
-			dockingManager1.UpdateLayout();
-			//TODO: WTF sometimes the dock does not display until minimized/maximized or clicked on the client area.
+			LoadDragdropItems();
+			//DONE: WTF sometimes the dock does not display (on home pc) until minimized/maximized or clicked on the client area. Was because the expander was IsExpanded=false and then items are loaded into it via LoadDragdropItems();
 		}
 
 		private void LoadDragdropItems()
