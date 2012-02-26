@@ -1,0 +1,17 @@
+<DockingManager version="1.3.0">
+    <ResizingPanel ResizeWidth="*" ResizeHeight="*" EffectiveSize="0,0" Orientation="Horizontal">
+        <ResizingPanel ResizeWidth="0.333532270355413*" ResizeHeight="*" EffectiveSize="531.650438946528,687.84" Orientation="Vertical">
+            <DockablePane ResizeWidth="0.315733896515312*" ResizeHeight="0.2191732635426*" EffectiveSize="658.650438946528,215.28" ID="46c1a3e1-e6d8-46a8-b029-50109b0cb1ff" Anchor="Left" IsAutoHidden="false" />
+            <DockablePane ResizeWidth="*" ResizeHeight="0.474997574500351*" EffectiveSize="531.650438946528,687.84" ID="f03e633f-fa5b-4edd-82a5-c15d7171f3fa" Anchor="Left" IsAutoHidden="false" />
+        </ResizingPanel>
+        <DockablePane ResizeWidth="0.342464315701092*" ResizeHeight="*" EffectiveSize="543.833333333333,687.84" ID="51755ea4-4219-44ed-a7b1-dcdcd8bb64bd" Anchor="Left" IsAutoHidden="false" />
+        <ResizingPanel ResizeWidth="0.666467729644587*" ResizeHeight="*" EffectiveSize="1062.34956105347,687.84" Orientation="Vertical">
+            <DockablePane ResizeWidth="*" ResizeHeight="275.92" EffectiveSize="1062.34956105347,275.92" ID="7e65bfb1-ba9b-443e-a371-eae02091587a" Anchor="Top" IsAutoHidden="false" />
+            <DocumentPaneResizingPanel ResizeWidth="*" ResizeHeight="*" EffectiveSize="1062.34956105347,405.92" Orientation="Vertical">
+                <DocumentPane IsMain="true" ResizeWidth="*" ResizeHeight="*" EffectiveSize="1062.34956105347,405.92" />
+            </DocumentPaneResizingPanel>
+        </ResizingPanel>
+    </ResizingPanel>
+    <Hidden />
+    <Windows />
+</DockingManager>

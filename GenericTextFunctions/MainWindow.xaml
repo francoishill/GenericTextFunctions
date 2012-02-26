@@ -111,10 +111,13 @@
 						  Name='MenuitemExit'
 						  Click='MenuitemExit_Click' />
 			</MenuItem>
-			<!--<MenuItem Header="_Edit" />
-			<MenuItem Header="_View" />
-			<MenuItem Header="_Window" />
-			<MenuItem Header="_Help" />-->
+			<!--<MenuItem Header="_Edit" />-->
+			<MenuItem Header="_View">
+				<MenuItem Header='_Save layout' Name='MenuitemSaveLayout' Click='MenuitemSaveLayout_Click' />
+				<MenuItem Header='_Load layout' Name='MenuitemLoadLayout' Click='MenuitemLoadLayout_Click' />
+			</MenuItem>
+			<!--<MenuItem Header="_Window" />-->
+			<!--<MenuItem Header="_Help" />-->
 		</Menu>
 		
 		<Expander Name='expander1' IsExpanded='True' ExpandDirection='Down' DockPanel.Dock='Top'>
@@ -139,23 +142,26 @@
 			</ListBox>
 		</Expander>
 
-		<avalon:DockingManager>
+		<avalon:DockingManager x:Name='dockingManager1'>
 			<avalon:DockingManager.Resources>
 				<!--<ResourceDictionary Source="/AvalonDock.Themes;component/themes/ExpressionDark.xaml" />-->
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/aero.normalcolor.xaml" />-->
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/classic.xaml" />-->
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/luna.normalcolor.xaml" />-->
 			</avalon:DockingManager.Resources>
-			<avalon:ResizingPanel x:Name='resizingPanel1'>
+			<avalon:ResizingPanel>
 				<avalon:DockablePane>
-					<avalon:DockableContent Title='Input rich text'>
+					<avalon:DockableContent Title='Input rich text'
+											IsCloseable='False'>
 						<WindowsFormsHost Grid.Column='0'
 										  Margin='0,0,5,0'>
 							<winforms:RichTextBox x:Name='richTextBox1'
 												  WordWrap='False' />
 						</WindowsFormsHost>
 					</avalon:DockableContent>
-					<avalon:DockableContent Title='Processing tree'>
+				</avalon:DockablePane>
+				<avalon:DockablePane>
+					<avalon:DockableContent Title='Processing tree' IsCloseable='False'>
 						<DockPanel Grid.Column='1'>
 							<DockPanel DockPanel.Dock='Bottom'
 									   Margin='0,0,3,10'>

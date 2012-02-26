@@ -595,6 +595,24 @@ namespace GenericTextFunctions
 		{
 			e.Handled = true;//Becuase if the user holds down right button and move over to treeview, it starts dragging the first treeview item
 		}
+
+		private void MenuitemSaveLayout_Click(object sender, RoutedEventArgs e)
+		{
+			SaveFileDialog sfd = new SaveFileDialog();
+			sfd.Title = "Select a filename for saving the layout";
+			sfd.Filter = "Layout files (*.lof)|*.lof";
+			if (sfd.ShowDialog(this) == true)
+				dockingManager1.SaveLayout(sfd.FileName);
+		}
+
+		private void MenuitemLoadLayout_Click(object sender, RoutedEventArgs e)
+		{
+			OpenFileDialog ofd = new OpenFileDialog();
+			ofd.Title = "Select a filename for saving the layout";
+			ofd.Filter = "Layout files (*.lof)|*.lof";
+			if (ofd.ShowDialog(this) == true)
+				dockingManager1.RestoreLayout(ofd.FileName);
+		}
 	}
 
 	#region ExtensionMethods
