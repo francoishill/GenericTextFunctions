@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Collections.ObjectModel;
 using DataGridView = System.Windows.Forms.DataGridView;
 using ITextOperation = GenericTextFunctions.TextOperations.ITextOperation;
+using System.Text.RegularExpressions;
 
 namespace GenericTextFunctions
 {
@@ -428,6 +429,21 @@ namespace GenericTextFunctions
 					return new IntegerRange[] { new IntegerRange(0, 0) };
 				else
 					return new IntegerRange[0];
+			}
+		}
+
+		public class MatchesRegularExpression : TextOperation
+		{
+			private TextBox RegularExpression = new TextBox() { Name = "RegularExpression", MinWidth = 100 };
+			public override Control[] InputControls { get { return new Control[] { RegularExpression }; } }
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				if (Regex.IsMatch(
+					textRange.IsFull() ? UsedText : textRange.IsEmpty() ? ""
+						: UsedText.Substring(textRange.Start.Value, textRange.Length.Value),
+					RegularExpression.Text))					
+					return new IntegerRange[] { textRange };
+				else return new IntegerRange[0];
 			}
 		}
 
