@@ -212,6 +212,39 @@ namespace GenericTextFunctions
 			}
 		}
 
+		public class SplitUsingCharacters : TextOperation
+		{
+			private TextBox SplitCharacters = new TextBox() { Name = "SplitCharacters", MinWidth = 100 };
+			public override Control[] InputControls { get { return new Control[] { SplitCharacters }; } }
+
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
+			{
+				List<IntegerRange> rangeList = new List<IntegerRange>();
+				int maxEndpoint = (int)(textRange.Start + textRange.Length);
+				int startIndex = (int)textRange.Start;
+				while (startIndex <= textRange.Start + textRange.Length)
+				{
+					int splitstringPos = UsedText.IndexOfAny(
+						SplitCharacters.Text.ToCharArray(),
+						startIndex,
+						(int)(textRange.Start + textRange.Length - startIndex));
+					if (splitstringPos == -1)
+					{
+						if ((int)(textRange.Start + textRange.Length - startIndex) > 0)
+							rangeList.Add(new IntegerRange((uint)startIndex, (uint)(maxEndpoint - startIndex)));
+						break;
+					}
+					else
+					{
+						rangeList.Add(new IntegerRange((uint)startIndex, (uint)(splitstringPos - startIndex)));
+						startIndex = splitstringPos + 1;
+					}
+				}
+
+				return rangeList.ToArray();
+			}
+		}
+
 		public class Trim : TextOperation
 		{
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
@@ -456,7 +489,10 @@ namespace GenericTextFunctions
 				if (dataGridView.ColumnCount <= CurrentGridColumn)
 					dataGridView.Columns.Add("Column" + (CurrentGridColumn + 1), "Column" + (CurrentGridColumn + 1));
 				if (dataGridView.Rows.Count == 0)
-					dataGridView.Rows.Add();
+				{
+					int newRowIndex = dataGridView.Rows.Add();
+					dataGridView.Rows[newRowIndex].HeaderCell.Value = (CurrentGridRow + 1).ToString();
+				}
 				dataGridView[CurrentGridColumn, CurrentGridRow].Value =
 					textRange.IsFull() ? UsedText
 					: textRange.IsEmpty() ? ""
@@ -472,10 +508,37 @@ namespace GenericTextFunctions
 			{
 				if (dataGridView == null)
 					return new IntegerRange[] { textRange };
-				dataGridView.Rows.Add();
-				CurrentGridRow++;
+				int newRowIndex = dataGridView.Rows.Add();
+				dataGridView.Rows[newRowIndex].HeaderCell.Value = (++CurrentGridRow + 1).ToString();
+				//CurrentGridRow++;
 				CurrentGridColumn = 0;
 				return new IntegerRange[] { textRange };
+			}
+		}
+
+		public class IfContainsThenExtractLength : TextOperation
+		{
+			private TextBox TextToSeek = new TextBox() { Name = "TextToSeek", Width = 50 };
+			private NumericUpDown LengthToExtract = new NumericUpDown() { Name = "LengthToExtract", Width = 50, MinValue = 0 };
+			public override Control[] InputControls { get { return new Control[] { TextToSeek, LengthToExtract }; } }
+
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
+			{
+				int startIndexOfTextToSeek = (textRange.IsFull() ? UsedText
+						: textRange.IsEmpty() ? ""
+						: UsedText.Substring(textRange.Start.Value, textRange.Length.Value)).IndexOf(TextToSeek.Text);
+				if (startIndexOfTextToSeek != -1)
+					return new IntegerRange[]
+					{
+						//TODO: textRange.Length not used here, so if Length.Value is larger than textRange.Length it will work but is actually wrong..?
+						new IntegerRange(
+							(uint)(textRange.Start + startIndexOfTextToSeek),
+							(uint)(LengthToExtract.Value == -1
+							? (int)(textRange.Start.Value + textRange.Length.Value - textRange.Start - startIndexOfTextToSeek)
+							: LengthToExtract.Value))
+					};
+				else
+					return new IntegerRange[0];
 			}
 		}
 	}

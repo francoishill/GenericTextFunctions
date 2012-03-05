@@ -16,6 +16,7 @@ using System.Diagnostics;
 using ITextOperation = GenericTextFunctions.TextOperations.ITextOperation;
 using System.Reflection;
 using System.Linq;
+using System.IO;
 
 namespace GenericTextFunctions
 {
@@ -39,7 +40,18 @@ namespace GenericTextFunctions
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			richTextBox1.LoadFile(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions\GenericTextFunctions\ABI\ABI word files - Copy.rtf");
+			string tmpLoadFile = @"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions\GenericTextFunctions\ABI\Catalogue 2012.rtf";
+			if (File.Exists(tmpLoadFile))
+			{
+				try
+				{
+					richTextBox1.LoadFile(tmpLoadFile);
+				}
+				catch (Exception exc)
+				{
+					TempUserMessages.ShowWarningMessage("Unable to open file: " + exc.Message);
+				}
+			}
 
 			LoadDragdropItems();
 			//DONE: WTF sometimes the dock does not display (on home pc) until minimized/maximized or clicked on the client area. Was because the expander was IsExpanded=false and then items are loaded into it via LoadDragdropItems();
@@ -335,28 +347,42 @@ namespace GenericTextFunctions
 			System.Windows.Forms.MessageBox.Show("Function not incorporated yet.");
 		}
 
+		private bool IsBusyProcess = false;
 		private void buttonProcessNow_Click(object sender, RoutedEventArgs e)
 		{
-			new Action(delegate
+			if (IsBusyProcess)
+				TempUserMessages.ShowWarningMessage("Already busy processing, please wait for it to finish.");
+			else
 			{
-				dataGrid1.Rows.Clear();
-				//dataGrid1.Rows.Add();
-				currentGridRow = 0;
-				dataGrid1.Columns.Clear();
-				currentGridColumn = 0;
-
-				string richTextboxText = richTextBox1.Text;
-
-				foreach (ITextOperation ddo in treeView1.Items)
+				IsBusyProcess = true;
+				System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode tmpRowHeaderSizeMode = dataGrid1.RowHeadersWidthSizeMode;
+				dataGrid1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+				dataGrid1.SuspendLayout();
+				new Action(delegate
 				{
-					TreeViewItem tvi = treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem;
-					ProcessTreeViewItem(tvi, ref richTextboxText, IntegerRange.Full);
-				}
-			}).PerformTimedActionAndUpdateStatus(
-				textFeedbackEvent,
-				"Processing text, please wait...",
-				"Processing completed with duration of {0} seconds",
-				3000);
+					dataGrid1.Rows.Clear();
+					//dataGrid1.Rows.Add();
+					currentGridRow = 0;
+					dataGrid1.Columns.Clear();
+					currentGridColumn = 0;
+
+					string richTextboxText = richTextBox1.Text;
+
+					foreach (ITextOperation ddo in treeView1.Items)
+					{
+						TreeViewItem tvi = treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem;
+						ProcessTreeViewItem(tvi, ref richTextboxText, IntegerRange.Full);
+					}
+				}).PerformTimedActionAndUpdateStatus(
+					textFeedbackEvent,
+					"Processing text, please wait...",
+					"Processing completed with duration of {0} seconds. Total row count = {1}",
+					7000,
+					new Func<string>(() => (dataGrid1.RowCount - 1).ToString()));
+				dataGrid1.ResumeLayout();
+				dataGrid1.RowHeadersWidthSizeMode = tmpRowHeaderSizeMode;
+				IsBusyProcess = false;
+			}
 		}
 
 		int currentGridRow = 0;
@@ -392,12 +418,12 @@ namespace GenericTextFunctions
 			}
 		}
 
-		private void MenuitemExportFile_Click(object sender, RoutedEventArgs e)
+		private void MenuitemExportProcessFile_Click(object sender, RoutedEventArgs e)
 		{
-			ExportFile();
+			ExportProcessFile();
 		}
 
-		private void ExportFile()
+		private void ExportProcessFile()
 		{
 			SaveFileDialog sfd = new SaveFileDialog();
 			sfd.Filter = "Xml files (*.xml)|*.xml";
@@ -456,12 +482,12 @@ namespace GenericTextFunctions
 			}
 		}
 
-		private void MenuitemImportFile_Click(object sender, RoutedEventArgs e)
+		private void MenuitemImportProcessFile_Click(object sender, RoutedEventArgs e)
 		{
-			ImportFile();
+			ImportProcessFile();
 		}
 
-		private void ImportFile()
+		private void ImportProcessFile()
 		{
 			OpenFileDialog ofd = new OpenFileDialog();
 			ofd.Filter = "Xml files (*.xml)|*.xml";
@@ -583,12 +609,12 @@ namespace GenericTextFunctions
 
 		private void buttonImportFile_Click(object sender, RoutedEventArgs e)
 		{
-			ImportFile();
+			ImportProcessFile();
 		}
 
 		private void buttonExportFile_Click(object sender, RoutedEventArgs e)
 		{
-			ExportFile();
+			ExportProcessFile();
 		}
 
 		private void listBox1_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -608,10 +634,28 @@ namespace GenericTextFunctions
 		private void MenuitemLoadLayout_Click(object sender, RoutedEventArgs e)
 		{
 			OpenFileDialog ofd = new OpenFileDialog();
-			ofd.Title = "Select a filename for saving the layout";
+			ofd.Title = "Select a filename to load the layout from";
 			ofd.Filter = "Layout files (*.lof)|*.lof";
 			if (ofd.ShowDialog(this) == true)
 				dockingManager1.RestoreLayout(ofd.FileName);
+		}
+
+		private void MenuitemOpenInfoFile_Click(object sender, RoutedEventArgs e)
+		{
+			OpenFileDialog ofd = new OpenFileDialog();
+			ofd.Title = "Select a file to open with the source info";
+			ofd.Filter = "Rich text files (*.rtf)|*.rtf";
+			if (ofd.ShowDialog(this) == true)
+			{
+				try
+				{
+					richTextBox1.LoadFile(ofd.FileName);
+				}
+				catch (Exception exc)
+				{
+					TempUserMessages.ShowWarningMessage("Unable to open file: " + exc.Message);
+				}
+			}
 		}
 	}
 
@@ -626,7 +670,7 @@ namespace GenericTextFunctions
 		/// <param name="StatusToSayCompletedAddZeroParameter">The status text to say it is completed i.e. "Action completed in {0} seconds.</param>
 		/*/// <param name="MakeProgressbarVisibleDuring">Whether the progressbar should be made visible during the action.</param>*/
 		/// <param name="completionMessageTimeout">The timeout after how long the message showed for completion is hidden.</param>
-		public static void PerformTimedActionAndUpdateStatus(this Action actionToPerform, TextFeedbackEventHandler textFeedbackEvent, string StatusToSayStarting, string StatusToSayCompletedAddZeroParameter, /*bool MakeProgressbarVisibleDuring, */int completionMessageTimeout = 0)
+		public static void PerformTimedActionAndUpdateStatus(this Action actionToPerform, TextFeedbackEventHandler textFeedbackEvent, string StatusToSayStarting, string StatusToSayCompletedAddZeroParameter, /*bool MakeProgressbarVisibleDuring, */int completionMessageTimeout = 0, params Func<string>[] AdditionalArguments)
 		{
 			if (textFeedbackEvent == null)
 				textFeedbackEvent = new TextFeedbackEventHandler(delegate { });
@@ -637,7 +681,10 @@ namespace GenericTextFunctions
 			Stopwatch sw = Stopwatch.StartNew();
 			actionToPerform();
 			sw.Stop();
-			string completionMessage = string.Format(StatusToSayCompletedAddZeroParameter, Math.Round(sw.Elapsed.TotalSeconds, 3));
+			//string completionMessage = string.Format(StatusToSayCompletedAddZeroParameter, Math.Round(sw.Elapsed.TotalSeconds, 3));
+			string completionMessage = StatusToSayCompletedAddZeroParameter.Replace("{0}", Math.Round(sw.Elapsed.TotalSeconds, 3).ToString());
+			for (int i = 0; i < AdditionalArguments.Length; i++)
+				completionMessage = completionMessage.Replace("{" + (i + 1) + "}", AdditionalArguments[i]());
 			textFeedbackEvent(actionToPerform, new TextFeedbackEventArgs(completionMessage));
 			if (completionMessageTimeout > 0)
 			{
