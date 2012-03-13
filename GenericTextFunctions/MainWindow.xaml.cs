@@ -42,7 +42,7 @@ namespace GenericTextFunctions
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			WindowMessagesInterop.InitializeClientMessages();
+			StartPipeClient();
 
 			string tmpLoadFile = @"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions\GenericTextFunctions\ABI\Catalogue 2012.rtf";
 			if (File.Exists(tmpLoadFile))
@@ -61,38 +61,36 @@ namespace GenericTextFunctions
 			//DONE: WTF sometimes the dock does not display (on home pc) until minimized/maximized or clicked on the client area. Was because the expander was IsExpanded=false and then items are loaded into it via LoadDragdropItems();
 		}
 
-		protected override void OnSourceInitialized(EventArgs e)
+		NamedPipesInterop.NamedPipeClient pipeclient;
+		private void StartPipeClient()
 		{
-			base.OnSourceInitialized(e);
-			HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
-			source.AddHook(WndProc);
-		}
-
-		private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-		{
-			WindowMessagesInterop.MessageTypes mt;
-			WindowMessagesInterop.ClientHandleMessage(msg, wParam, lParam, out mt);
-			if (mt == WindowMessagesInterop.MessageTypes.Show)
-			{
-				this.Show();
-				if (this.WindowState == System.Windows.WindowState.Minimized)
-					this.WindowState = System.Windows.WindowState.Normal;
-				bool tmptopmost = this.Topmost;
-				this.Topmost = true;
-				this.Topmost = tmptopmost;
-				this.Activate();
-				this.UpdateLayout();
-			}
-			else if (mt == WindowMessagesInterop.MessageTypes.Close)
-			{
-				this.Close();
-			}
-			else if (mt == WindowMessagesInterop.MessageTypes.Hide)
-			{
-				this.Hide();
-			}
-
-			return IntPtr.Zero;
+			pipeclient = NamedPipesInterop.NamedPipeClient.StartNewPipeClient(
+				ActionOnError: (e) => { Console.WriteLine("Error occured: " + e.GetException().Message); },
+				ActionOnMessageReceived: (m) =>
+				{
+					if (m.MessageType == PipeMessageTypes.AcknowledgeClientRegistration)
+						Console.WriteLine("Client successfully registered.");
+					else
+					{
+						if (m.MessageType == PipeMessageTypes.Show)
+							Dispatcher.BeginInvoke((Action)delegate
+							{
+								this.Show();
+								if (this.WindowState == System.Windows.WindowState.Minimized)
+									this.WindowState = System.Windows.WindowState.Normal;
+								bool tmptopmost = this.Topmost;
+								this.Topmost = true;
+								this.Topmost = tmptopmost;
+								this.Activate();
+								this.UpdateLayout();
+							});
+						else if (m.MessageType == PipeMessageTypes.Hide)
+							Dispatcher.BeginInvoke((Action)delegate { this.Hide(); });
+						else if (m.MessageType == PipeMessageTypes.Close)
+							Dispatcher.BeginInvoke((Action)delegate { this.Close(); });
+					}
+				});
+			this.Closing += delegate { if (pipeclient != null) { pipeclient.ForceCancelRetryLoop = true; } };
 		}
 
 		private void LoadDragdropItems()
