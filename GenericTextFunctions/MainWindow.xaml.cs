@@ -42,7 +42,8 @@ namespace GenericTextFunctions
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			StartPipeClient();
+			//StartPipeClient();
+			WindowMessagesInterop.InitializeClientMessages();
 
 			string tmpLoadFile = @"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions\GenericTextFunctions\ABI\Catalogue 2012.rtf";
 			if (File.Exists(tmpLoadFile))
@@ -59,9 +60,27 @@ namespace GenericTextFunctions
 
 			LoadDragdropItems();
 			//DONE: WTF sometimes the dock does not display (on home pc) until minimized/maximized or clicked on the client area. Was because the expander was IsExpanded=false and then items are loaded into it via LoadDragdropItems();
+
+			HwndSource source = (HwndSource)PresentationSource.FromDependencyObject(this);
+			source.AddHook(WindowProc);
 		}
 
-		NamedPipesInterop.NamedPipeClient pipeclient;
+		private IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+		{
+			WindowMessagesInterop.MessageTypes mt;
+			WindowMessagesInterop.ClientHandleMessage(msg, wParam, lParam, out mt);
+			if (mt == WindowMessagesInterop.MessageTypes.Show)
+				this.Show();
+			else if (mt == WindowMessagesInterop.MessageTypes.Hide)
+				this.Hide();
+			else if (mt == WindowMessagesInterop.MessageTypes.Close)
+			{
+				this.Close();
+			}
+			return IntPtr.Zero;
+		}
+
+		/*NamedPipesInterop.NamedPipeClient pipeclient;
 		private void StartPipeClient()
 		{
 			pipeclient = NamedPipesInterop.NamedPipeClient.StartNewPipeClient(
@@ -91,7 +110,7 @@ namespace GenericTextFunctions
 					}
 				});
 			this.Closing += delegate { if (pipeclient != null) { pipeclient.ForceCancelRetryLoop = true; } };
-		}
+		}*/
 
 		private void LoadDragdropItems()
 		{
