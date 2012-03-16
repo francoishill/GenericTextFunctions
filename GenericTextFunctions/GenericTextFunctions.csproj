@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -106,6 +106,9 @@
     <Compile Include="..\..\SharedClasses\WindowMessagesInterop.cs">
       <Link>WindowMessagesInterop.cs</Link>
     </Compile>
+    <Compile Include="C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses\EventHandlers.cs">
+      <Link>EventHandlers.cs</Link>
+    </Compile>
     <Compile Include="TempUserMessages.cs" />
     <Compile Include="TextOperationClasses.cs" />
     <Page Include="MainWindow.xaml">
@@ -165,12 +168,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Resource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess\InlineCommandToolkit\InlineCommandToolkit.csproj">
-      <Project>{3f73ece5-851e-4c02-ac70-37c0f92783ad}</Project>
-      <Name>InlineCommandToolkit</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

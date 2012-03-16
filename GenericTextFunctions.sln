@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 11
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericTextFunctions", "GenericTextFunctions\GenericTextFunctions.csproj", "{98DCDE98-4880-4BBE-9B35-4072E771E107}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineCommandToolkit", "C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess\InlineCommandToolkit\InlineCommandToolkit.csproj", "{3F73ECE5-851E-4C02-AC70-37C0F92783AD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,18 +13,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Debug|x64.ActiveCfg = Debug|x64
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Debug|x64.Build.0 = Debug|x64
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Debug|x86.ActiveCfg = Debug|x86
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Debug|x86.Build.0 = Debug|x86
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Release|x64.ActiveCfg = Release|x64
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Release|x64.Build.0 = Release|x64
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Release|x86.ActiveCfg = Release|x86
-		{3F73ECE5-851E-4C02-AC70-37C0F92783AD}.Release|x86.Build.0 = Release|x86
 		{98DCDE98-4880-4BBE-9B35-4072E771E107}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{98DCDE98-4880-4BBE-9B35-4072E771E107}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98DCDE98-4880-4BBE-9B35-4072E771E107}.Debug|x64.ActiveCfg = Debug|Any CPU
