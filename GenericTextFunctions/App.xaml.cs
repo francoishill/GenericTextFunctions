@@ -16,6 +16,7 @@ namespace GenericTextFunctions
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			System.Windows.Forms.Application.EnableVisualStyles();
+            SharedClasses.AutoUpdatingForm.CheckForUpdates(delegate { Dispatcher.Invoke((Action)delegate { this.Shutdown(); }); });
 			base.OnStartup(e);
 		}
 	}
