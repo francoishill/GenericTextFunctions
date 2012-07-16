@@ -29,10 +29,29 @@ namespace GenericTextFunctions
 	{
 		TextFeedbackEventHandler textFeedbackEvent;
 		ObservableCollection<ITextOperation> CurrentList = new ObservableCollection<ITextOperation>();
+		Timer timerVersionString;
 
 		public MainWindow()
 		{
 			InitializeComponent();
+
+			timerVersionString = new Timer(
+			delegate
+			{
+				if (App.CurrentVersionString != null)
+				{
+					this.Dispatcher.Invoke((Action)delegate
+					{
+						this.Title += " (up to date version " + App.CurrentVersionString + ")";
+						timerVersionString.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+						timerVersionString.Dispose();
+						timerVersionString = null;
+					});
+				}
+			},
+			null,
+			TimeSpan.FromSeconds(1),
+			TimeSpan.FromSeconds(1));
 
 			textFeedbackEvent += (s, e) =>
 			{

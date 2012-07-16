@@ -13,10 +13,14 @@ namespace GenericTextFunctions
 	/// </summary>
 	public partial class App : Application
 	{
+		public static string CurrentVersionString = null;
+
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			System.Windows.Forms.Application.EnableVisualStyles();
-            SharedClasses.AutoUpdatingForm.CheckForUpdates(delegate { Dispatcher.Invoke((Action)delegate { this.Shutdown(); }); });
+			SharedClasses.AutoUpdatingForm.CheckForUpdates(
+				exitApplicationAction: delegate { Dispatcher.Invoke((Action)delegate { this.Shutdown(); }); },
+				ActionIfUptoDate_Versionstring: (versionstring) => { CurrentVersionString = versionstring; });
 			base.OnStartup(e);
 		}
 	}
