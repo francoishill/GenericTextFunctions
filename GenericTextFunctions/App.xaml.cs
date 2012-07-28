@@ -14,13 +14,16 @@ namespace GenericTextFunctions
 	public partial class App : Application
 	{
 		public static string CurrentVersionString = null;
+		public static string CannotCheckVersionError = null;
 
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			System.Windows.Forms.Application.EnableVisualStyles();
 			SharedClasses.AutoUpdatingForm.CheckForUpdates(
-				exitApplicationAction: delegate { Dispatcher.Invoke((Action)delegate { this.Shutdown(); }); },
-				ActionIfUptoDate_Versionstring: (versionstring) => { CurrentVersionString = versionstring; });
+				exitApplicationAction: () => Dispatcher.Invoke((Action)delegate { this.Shutdown(); }),
+				ActionIfUptoDate_Versionstring: (versionstring) => CurrentVersionString = versionstring,
+				ActionIfUnableToCheckForUpdates: (errms) => CannotCheckVersionError = errms,
+				ShowModally: true);
 			base.OnStartup(e);
 		}
 	}

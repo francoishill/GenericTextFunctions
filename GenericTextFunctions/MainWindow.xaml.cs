@@ -48,6 +48,16 @@ namespace GenericTextFunctions
 						timerVersionString = null;
 					});
 				}
+				else if (App.CannotCheckVersionError != null)
+				{
+					this.Dispatcher.Invoke((Action)delegate
+					{
+						this.Title += " (" + App.CurrentVersionString + ")";
+						timerVersionString.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+						timerVersionString.Dispose();
+						timerVersionString = null;
+					});
+				}
 			},
 			null,
 			TimeSpan.FromSeconds(1),
