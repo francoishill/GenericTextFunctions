@@ -134,14 +134,26 @@
     <Compile Include="..\..\SharedClasses\WebInterop.cs">
       <Link>WebInterop.cs</Link>
     </Compile>
+    <Compile Include="..\..\SharedClasses\Win32Api.cs">
+      <Link>Win32Api.cs</Link>
+    </Compile>
     <Compile Include="..\..\SharedClasses\WindowMessagesInterop.cs">
       <Link>WindowMessagesInterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedClasses\WpfNotificationWindow.xaml.cs">
+      <Link>WpfNotificationWindow.xaml.cs</Link>
+      <DependentUpon>WpfNotificationWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses\EventHandlers.cs">
       <Link>EventHandlers.cs</Link>
     </Compile>
     <Compile Include="TempUserMessages.cs" />
     <Compile Include="TextOperationClasses.cs" />
+    <Page Include="..\..\SharedClasses\WpfNotificationWindow.xaml">
+      <Link>WpfNotificationWindow.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

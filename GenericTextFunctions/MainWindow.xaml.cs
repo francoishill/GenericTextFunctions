@@ -53,9 +53,13 @@ namespace GenericTextFunctions
 					this.Dispatcher.Invoke((Action)delegate
 					{
 						this.Title += " (" + App.CurrentVersionString + ")";
-						timerVersionString.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
-						timerVersionString.Dispose();
-						timerVersionString = null;
+						try
+						{
+							timerVersionString.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+							timerVersionString.Dispose();
+							timerVersionString = null;
+						}
+						catch { }
 					});
 				}
 			},
@@ -376,19 +380,32 @@ namespace GenericTextFunctions
 			_IsDragging = true;
 			ITextOperation ddo = this.treeView1.SelectedItem as ITextOperation;
 			//DataObject data = null;
-
-			//data = new DataObject("inadt", temp);
-
-			if (ddo != null)
+			try
 			{
-				DragDropEffects dde = DragDropEffects.Move;
-				if (e.RightButton == MouseButtonState.Pressed)
+				if (ddo == null)
+					return;
+
+				if (ddo.HasInputControls)
+					foreach (var ic in ddo.InputControls)
+						if (ic.IsMouseCaptureWithin)
+							return;
+
+				//data = new DataObject("inadt", temp);
+
+				if (ddo != null)
 				{
-					dde = DragDropEffects.Copy;
+					DragDropEffects dde = DragDropEffects.Move;
+					if (e.RightButton == MouseButtonState.Pressed)
+					{
+						dde = DragDropEffects.Copy;
+					}
+					DragDropEffects de = DragDrop.DoDragDrop(this.treeView1, ddo, dde);
 				}
-				DragDropEffects de = DragDrop.DoDragDrop(this.treeView1, ddo, dde);
 			}
-			_IsDragging = false;
+			finally
+			{
+				_IsDragging = false;
+			}
 		}
 
 		private void listBox1_Drop(object sender, DragEventArgs e)
@@ -439,7 +456,9 @@ namespace GenericTextFunctions
 			else
 			{
 				IsBusyProcess = true;
-				System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode tmpRowHeaderSizeMode = dataGrid1.RowHeadersWidthSizeMode;
+				var tmpRowHeaderSizeMode = dataGrid1.RowHeadersWidthSizeMode;
+				var tmpAutoSizeColumnsMode = dataGrid1.AutoSizeColumnsMode;
+				dataGrid1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader;
 				dataGrid1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 				dataGrid1.SuspendLayout();
 				new Action(delegate
@@ -465,6 +484,14 @@ namespace GenericTextFunctions
 					new Func<string>(() => (dataGrid1.RowCount - 1).ToString()));
 				dataGrid1.ResumeLayout();
 				dataGrid1.RowHeadersWidthSizeMode = tmpRowHeaderSizeMode;
+
+				int[] colwidths = new int[dataGrid1.ColumnCount];
+				for (int i = 0; i < colwidths.Length; i++)
+					colwidths[i] = dataGrid1.Columns[i].Width;
+				dataGrid1.AutoSizeColumnsMode = tmpAutoSizeColumnsMode;
+				for (int i = 0; i < colwidths.Length; i++)
+					dataGrid1.Columns[i].Width = colwidths[i];
+
 				IsBusyProcess = false;
 			}
 		}

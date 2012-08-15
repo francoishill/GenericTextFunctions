@@ -44,7 +44,7 @@
 								</LinearGradientBrush>
 							</Border.Background>
 							<TextBlock Text='{Binding DisplayName}'
-									   FontSize='20'
+									   FontSize='14'
 									   Foreground='#FFDEF3FF' />
 						</Border>
 					</DataTemplate>
@@ -253,7 +253,7 @@
 													   RowHeadersVisible='True'
 													   RowHeadersWidthSizeMode='AutoSizeToAllHeaders'
 													   AllowUserToAddRows='False'
-													   AutoSizeColumnsMode='AllCellsExceptHeader' />
+													   AutoSizeColumnsMode='None' />
 							</WindowsFormsHost>
 						</DockPanel>
 					</avalon:DockableContent>

@@ -72,6 +72,7 @@ namespace GenericTextFunctions
 
 		public abstract class TextOperation : ITextOperation
 		{
+			public const RegexOptions RegexOptionsToUse = RegexOptions.Singleline;//.Multiline;
 			public virtual string DisplayName { get { return this.GetType().Name.InsertSpacesBeforeCamelCase(); } }
 			public virtual Control[] InputControls { get { return new Control[0]; } }
 			public bool HasInputControls { get { return InputControls != null && InputControls.Length > 0; } }
@@ -94,6 +95,14 @@ namespace GenericTextFunctions
 			public TextOperation()
 			{
 				IsExpanded = true;
+				//if (HasInputControls)
+				//    foreach (var ic in InputControls)
+				//    {
+				//        ic.MouseDown += (s, e) => { e.Handled = true; };
+				//        ic.MouseMove += (s, e) => { e.Handled = true; };
+				//        ic.PreviewMouseDown += (s, e) => { e.Handled = true; };
+				//        ic.PreviewMouseMove += (s, e) => { e.Handled = true; };
+				//    }
 			}
 
 			public bool IsExpanded { get; set; }
@@ -141,6 +150,39 @@ namespace GenericTextFunctions
 			}
 		}
 
+		public class ForEachRegex : TextOperation
+		{
+			private TextBox RegularExpression = new TextBox() { Name = "RegularExpression", MinWidth = 200 };
+			public override Control[] InputControls { get { return new Control[] { RegularExpression }; } }
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				try
+				{
+					var matches = Regex.Matches(
+							textRange.IsFull() ? UsedText : textRange.IsEmpty() ? ""
+							: UsedText.Substring(textRange.Start.Value, textRange.Length.Value),
+							RegularExpression.Text,
+							RegexOptionsToUse);
+					var ranges = new IntegerRange[matches.Count];
+					for (int i = 0; i < matches.Count; i++)
+						ranges[i] = new IntegerRange((uint)(textRange.Start + matches[i].Index),
+							(uint)(matches[i].Length));
+					return ranges;
+				}
+				catch (Exception exc)
+				{
+					TempUserMessages.ShowErrorMessage("Cannot use regular expression: " + exc.Message);
+					return new IntegerRange[0];
+				}
+				//if (Regex.IsMatch(
+				//    textRange.IsFull() ? UsedText : textRange.IsEmpty() ? ""
+				//        : UsedText.Substring(textRange.Start.Value, textRange.Length.Value),
+				//    RegularExpression.Text, RegexOptionsToUse))
+				//    return new IntegerRange[] { textRange };
+				//else return new IntegerRange[0];
+			}
+		}
+
 		public class IfItContains : TextOperation
 		{
 			private TextBox SearchForText = new TextBox() { Name = "SearchForText", MinWidth = 100 };
@@ -176,6 +218,37 @@ namespace GenericTextFunctions
 						? (int)(textRange.Start.Value + textRange.Length.Value - textRange.Start - StartPosition.Value)
 						: Length.Value))
 				};
+			}
+		}
+
+		public class ExtractRegex : TextOperation
+		{
+			private TextBox RegularExpression = new TextBox() { Name = "RegularExpression", MinWidth = 200 };
+			public override Control[] InputControls { get { return new Control[] { RegularExpression }; } }
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
+			{
+				try
+				{
+
+					var match = Regex.Match(
+						textRange.IsFull() ? UsedText : textRange.IsEmpty() ? ""
+						: UsedText.Substring(textRange.Start.Value, textRange.Length.Value),
+						RegularExpression.Text,
+						RegexOptionsToUse);
+					if (match.Success)
+						return new IntegerRange[]
+						{
+							new IntegerRange((uint)(textRange.Start + match.Index),
+							(uint)(match.Length))
+						};
+					else
+						return new IntegerRange[0];
+				}
+				catch (Exception exc)
+				{
+					TempUserMessages.ShowErrorMessage("Cannot use regular expression: " + exc.Message);
+					return new IntegerRange[0];
+				}
 			}
 		}
 
@@ -250,12 +323,12 @@ namespace GenericTextFunctions
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
 				int tmpStartPos = textRange.Start.Value;
-				int tmpEndPos = textRange.Start.Value + textRange.Length.Value;
+				int tmpEndPos = textRange.Start.Value + textRange.Length.Value - 1;
 				while (UsedText[tmpStartPos] == ' ' && tmpStartPos < textRange.Start.Value + textRange.Length)
 					tmpStartPos++;
 				while (UsedText[tmpEndPos] == ' ' && tmpEndPos >= textRange.Start.Value)
 					tmpEndPos--;
-				return new IntegerRange[] { new IntegerRange((uint)tmpStartPos, (uint)(tmpEndPos - tmpStartPos)) };
+				return new IntegerRange[] { new IntegerRange((uint)tmpStartPos, (uint)(tmpEndPos - tmpStartPos + 1)) };
 			}
 		}
 
@@ -474,7 +547,8 @@ namespace GenericTextFunctions
 				if (Regex.IsMatch(
 					textRange.IsFull() ? UsedText : textRange.IsEmpty() ? ""
 						: UsedText.Substring(textRange.Start.Value, textRange.Length.Value),
-					RegularExpression.Text))					
+					RegularExpression.Text,
+					RegexOptionsToUse))
 					return new IntegerRange[] { textRange };
 				else return new IntegerRange[0];
 			}
@@ -502,7 +576,7 @@ namespace GenericTextFunctions
 			}
 		}
 
-		public class AdvanceNewLine : TextOperationWithDataGridView
+		public class GotoNextLine : TextOperationWithDataGridView
 		{
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
