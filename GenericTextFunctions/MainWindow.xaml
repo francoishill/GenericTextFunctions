@@ -3,18 +3,19 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local='clr-namespace:GenericTextFunctions'
 		xmlns:winforms='clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms'
-		xmlns:avalon="clr-namespace:AvalonDock;assembly=AvalonDock"
+		xmlns:avalon="http://avalondock.codeplex.com"
 		Title="MainWindow"
-		Height="350"
+		Height="550"
 		Width="1225"
 		Loaded='Window_Loaded'
 		WindowStartupLocation='CenterScreen'
 		WindowState='Maximized'
 		Icon="app.ico">
+	<!--xmlns:avalon="clr-namespace:AvalonDock;assembly=AvalonDock"-->
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
-				<ResourceDictionary Source="/AvalonDock.Themes;component/themes/ExpressionDark.xaml" />
+				<!--<ResourceDictionary Source="/AvalonDock.Themes;component/themes/ExpressionDark.xaml" />-->
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/aero.normalcolor.xaml" />-->
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/classic.xaml" />-->
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/luna.normalcolor.xaml" />-->
@@ -167,99 +168,107 @@
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/classic.xaml" />-->
 				<!--<ResourceDictionary Source="/AvalonDock;component/themes/luna.normalcolor.xaml" />-->
 			</avalon:DockingManager.Resources>
-			<avalon:ResizingPanel>
-				<avalon:DockablePane>
-					<avalon:DockableContent Title='Input rich text'
-											IsCloseable='False'>
-						<WindowsFormsHost Grid.Column='0'
-										  Margin='0,0,5,0'>
-							<winforms:RichTextBox x:Name='richTextBox1'
-												  WordWrap='False' />
-						</WindowsFormsHost>
-					</avalon:DockableContent>
-				</avalon:DockablePane>
-				<avalon:DockablePane>
-					<avalon:DockableContent Title='Processing tree'
-											IsCloseable='False'>
-						<DockPanel Grid.Column='1'>
-							<DockPanel DockPanel.Dock='Bottom'
-									   Margin='0,0,3,10'>
-								<Button Name='buttonImportFile'
-										DockPanel.Dock='Left'
-										Background='Transparent'
-										Padding='5'
-										UseLayoutRounding='True'
-										Foreground='Green'
-										FontWeight='Bold'
-										FontSize='14'
-										Click='buttonImportFile_Click'>Import File
+			<avalon:DockingManager.Theme>
+				<avalon:AeroTheme />
+			</avalon:DockingManager.Theme>
+			<avalon:LayoutRoot>
+				<avalon:LayoutPanel Orientation="Horizontal">
+					<avalon:LayoutAnchorablePane DockWidth='600'>
+						<avalon:LayoutAnchorable Title='Processing tree'
+												 CanClose='False'>
+							<DockPanel Grid.Column='1'>
+								<DockPanel DockPanel.Dock='Bottom'
+										   Margin='0,0,3,10'>
+									<Button Name='buttonImportFile'
+											DockPanel.Dock='Left'
+											Background='Transparent'
+											Padding='5'
+											UseLayoutRounding='True'
+											Foreground='Green'
+											FontWeight='Bold'
+											FontSize='14'
+											Click='buttonImportFile_Click'>Import File
 
-								</Button>
-								<Button Name='buttonExportFile'
-										DockPanel.Dock='Right'
-										HorizontalAlignment='Right'
-										Background='Transparent'
-										Padding='5'
-										UseLayoutRounding='True'
-										Foreground='Orange'
-										FontWeight='Bold'
-										FontSize='14'
-										Click='buttonExportFile_Click'>Export File</Button>
+									</Button>
+									<Button Name='buttonExportFile'
+											DockPanel.Dock='Right'
+											HorizontalAlignment='Right'
+											Background='Transparent'
+											Padding='5'
+											UseLayoutRounding='True'
+											Foreground='Orange'
+											FontWeight='Bold'
+											FontSize='14'
+											Click='buttonExportFile_Click'>Export File</Button>
+								</DockPanel>
+								<TreeView Name='treeView1'
+										  SelectedItemChanged='treeView1_SelectedItemChanged'
+										  ItemTemplate='{StaticResource operationTypeTreeviewItem}'
+										  AllowDrop='True'
+										  Drop='treeView1_Drop'
+										  PreviewMouseDown='treeView1_PreviewMouseDown'
+										  PreviewMouseMove='treeView1_PreviewMouseMove'>
+									<TreeView.ItemContainerStyle>
+										<Style TargetType="TreeViewItem">
+											<Setter Property="IsExpanded"
+													Value="{Binding IsExpanded}" />
+										</Style>
+
+									</TreeView.ItemContainerStyle>
+								</TreeView>
 							</DockPanel>
-							<TreeView Name='treeView1'
-									  SelectedItemChanged='treeView1_SelectedItemChanged'
-									  ItemTemplate='{StaticResource operationTypeTreeviewItem}'
-									  AllowDrop='True'
-									  Drop='treeView1_Drop'
-									  PreviewMouseDown='treeView1_PreviewMouseDown'
-									  PreviewMouseMove='treeView1_PreviewMouseMove'>
-								<TreeView.ItemContainerStyle>
-									<Style TargetType="TreeViewItem">
-										<Setter Property="IsExpanded"
-												Value="{Binding IsExpanded}" />
-									</Style>
-
-								</TreeView.ItemContainerStyle>
-							</TreeView>
-						</DockPanel>
-					</avalon:DockableContent>
-				</avalon:DockablePane>
-				<avalon:DocumentPane>
-					<avalon:DockableContent Title='Output grid'>
-						<DockPanel Grid.Column='2'
-								   LastChildFill='True'
-								   Margin='10'>
-							<Button Name='buttonProcessNow'
-									DockPanel.Dock='Top'
-									HorizontalAlignment='Left'
-									Content='_Process now'
-									Padding='10,3'
-									Click='buttonProcessNow_Click' />
-							<Border DockPanel.Dock='Bottom'
-									BorderBrush='#333'
-									BorderThickness='1'
-									CornerRadius='3'
-									Padding='3'
-									Background='Transparent'>
-								<StatusBar Background='Transparent'>
-									<StatusBarItem Name='statusBarItem1' Foreground='White' />
-									<StatusBarItem Content='Test'
-												   Visibility='Hidden' />
-								</StatusBar>
-							</Border>
-							<WindowsFormsHost Grid.Column='2'
-											  Margin='0,10'>
-								<winforms:DataGridView x:Name='dataGrid1'
-													   RowHeadersVisible='True'
-													   RowHeadersWidthSizeMode='AutoSizeToAllHeaders'
-													   AllowUserToAddRows='False'
-													   AutoSizeColumnsMode='None' />
-							</WindowsFormsHost>
-						</DockPanel>
-					</avalon:DockableContent>
-
-				</avalon:DocumentPane>
-			</avalon:ResizingPanel>
+						</avalon:LayoutAnchorable>
+					</avalon:LayoutAnchorablePane>
+					<avalon:LayoutPanel Orientation='Vertical'>
+						<avalon:LayoutAnchorablePane DockHeight='200'>
+							<avalon:LayoutAnchorable Title='Input rich text'
+													 CanClose='False'>
+								<WindowsFormsHost Grid.Column='0'
+												  Margin='0,0,5,0'>
+									<winforms:RichTextBox x:Name='richTextBox1'
+														  WordWrap='False' />
+								</WindowsFormsHost>
+							</avalon:LayoutAnchorable>
+						</avalon:LayoutAnchorablePane>
+						<avalon:LayoutDocumentPane>
+							<avalon:LayoutAnchorable Title='Output grid'>
+								<DockPanel Grid.Column='2'
+										   LastChildFill='True'
+										   Margin='10'>
+									<Button Name='buttonProcessNow'
+											DockPanel.Dock='Top'
+											HorizontalAlignment='Left'
+											Content='_Process now'
+											Padding='10,3'
+											Click='buttonProcessNow_Click' />
+									<Border DockPanel.Dock='Bottom'
+											BorderBrush='#333'
+											BorderThickness='1'
+											CornerRadius='3'
+											Padding='3'
+											Background='Transparent'>
+										<StatusBar Background='Transparent'>
+											<StatusBarItem Name='statusBarItem1'
+														   Foreground='White' />
+											<StatusBarItem Content='Test'
+														   Visibility='Hidden' />
+										</StatusBar>
+									</Border>
+									<WindowsFormsHost Grid.Column='2'
+													  Margin='0,10'>
+										<winforms:DataGridView x:Name='dataGrid1'
+															   RowHeadersVisible='True'
+															   RowHeadersWidthSizeMode='AutoSizeToAllHeaders'
+															   AllowUserToAddRows='False'
+															   AutoSizeColumnsMode='None' />
+									</WindowsFormsHost>
+								</DockPanel>
+							</avalon:LayoutAnchorable>
+						</avalon:LayoutDocumentPane>
+					</avalon:LayoutPanel>
+					
+				</avalon:LayoutPanel>
+			</avalon:LayoutRoot>
 		</avalon:DockingManager>
 		<!--<Grid Grid.Row='2'
 			  Grid.ColumnSpan='10'

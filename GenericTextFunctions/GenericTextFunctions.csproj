@@ -70,8 +70,11 @@
     <Reference Include="AvalonDock">
       <HintPath>c:\Francois\Other\DLLs\AvalonDock\AvalonDock.dll</HintPath>
     </Reference>
-    <Reference Include="AvalonDock.Themes">
-      <HintPath>c:\Francois\Other\DLLs\AvalonDock\AvalonDock.Themes.dll</HintPath>
+    <Reference Include="AvalonDock.Themes.Aero">
+      <HintPath>..\..\..\DLLs\AvalonDock\AvalonDock.Themes.Aero.dll</HintPath>
+    </Reference>
+    <Reference Include="AvalonDock.Themes.VS2010">
+      <HintPath>..\..\..\DLLs\AvalonDock\AvalonDock.Themes.VS2010.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.mshtml, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -111,6 +114,9 @@
       <Link>AutoUpdatingForm.designer.cs</Link>
       <DependentUpon>AutoUpdatingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="..\..\SharedClasses\EventHandlers.cs">
+      <Link>EventHandlers.cs</Link>
+    </Compile>
     <Compile Include="..\..\SharedClasses\fastJSON.cs">
       <Link>fastJSON.cs</Link>
     </Compile>
@@ -143,9 +149,6 @@
     <Compile Include="..\..\SharedClasses\WpfNotificationWindow.xaml.cs">
       <Link>WpfNotificationWindow.xaml.cs</Link>
       <DependentUpon>WpfNotificationWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses\EventHandlers.cs">
-      <Link>EventHandlers.cs</Link>
     </Compile>
     <Compile Include="TempUserMessages.cs" />
     <Compile Include="TextOperationClasses.cs" />

@@ -19,6 +19,8 @@ using System.Linq;
 using System.IO;
 using System.Windows.Interop;
 using SharedClasses;
+using AvalonDock.Layout.Serialization;
+using AvalonDock.Layout;
 
 namespace GenericTextFunctions
 {
@@ -739,7 +741,12 @@ namespace GenericTextFunctions
 			sfd.Title = "Select a filename for saving the layout";
 			sfd.Filter = "Layout files (*.lof)|*.lof";
 			if (sfd.ShowDialog(this) == true)
-				dockingManager1.SaveLayout(sfd.FileName);
+			{
+				//dockingManager1.SaveLayout(sfd.FileName);
+				var serializer = new XmlLayoutSerializer(dockingManager1);
+				using (var stream = new StreamWriter(sfd.FileName))
+					serializer.Serialize(stream);
+			}
 		}
 
 		private void MenuitemLoadLayout_Click(object sender, RoutedEventArgs e)
@@ -748,7 +755,21 @@ namespace GenericTextFunctions
 			ofd.Title = "Select a filename to load the layout from";
 			ofd.Filter = "Layout files (*.lof)|*.lof";
 			if (ofd.ShowDialog(this) == true)
-				dockingManager1.RestoreLayout(ofd.FileName);
+			{
+				var currentContentsList = dockingManager1.Layout.Descendents().OfType<LayoutContent>().Where(c => c.ContentId != null).ToArray();
+
+				string fileName = (sender as MenuItem).Header.ToString();
+				var serializer = new XmlLayoutSerializer(dockingManager1);
+				//serializer.LayoutSerializationCallback += (s, args) =>
+				//    {
+				//        var prevContent = currentContentsList.FirstOrDefault(c => c.ContentId == args.Model.ContentId);
+				//        if (prevContent != null)
+				//            args.Content = prevContent.Content;
+				//    };
+				using (var stream = new StreamReader(ofd.FileName))
+					serializer.Deserialize(stream);
+				//dockingManager1.RestoreLayout(ofd.FileName);
+			}
 		}
 
 		private void MenuitemOpenInfoFile_Click(object sender, RoutedEventArgs e)
