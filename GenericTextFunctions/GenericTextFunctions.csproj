@@ -106,6 +106,9 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Compile Include="..\..\SharedClasses\AutoUpdating.cs">
+      <Link>AutoUpdating.cs</Link>
+    </Compile>
     <Compile Include="..\..\SharedClasses\AutoUpdatingForm.cs">
       <Link>AutoUpdatingForm.cs</Link>
       <SubType>Form</SubType>
@@ -119,6 +122,12 @@
     </Compile>
     <Compile Include="..\..\SharedClasses\fastJSON.cs">
       <Link>fastJSON.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedClasses\RegistryInterop.cs">
+      <Link>RegistryInterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedClasses\ShowNoCallbackNotificationInterop.cs">
+      <Link>ShowNoCallbackNotificationInterop.cs</Link>
     </Compile>
     <Compile Include="..\..\SharedClasses\StringExtensions.cs">
       <Link>StringExtensions.cs</Link>

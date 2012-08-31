@@ -35,6 +35,10 @@ namespace GenericTextFunctions
 
 		public MainWindow()
 		{
+			//Build the following into this app:
+			//1. tickbox to automatically pick up clipboard changes, paste inside "Input rich text" block
+				//Also have tickbox to say automatically process on pasted (so only if application is active)
+
 			InitializeComponent();
 
 			timerVersionString = new Timer(
@@ -453,11 +457,20 @@ namespace GenericTextFunctions
 		private bool IsBusyProcess = false;
 		private void buttonProcessNow_Click(object sender, RoutedEventArgs e)
 		{
+			ProcessInputTextToGrid();
+		}
+
+		private void ProcessInputTextToGrid()
+		{
 			if (IsBusyProcess)
 				TempUserMessages.ShowWarningMessage("Already busy processing, please wait for it to finish.");
 			else
 			{
 				IsBusyProcess = true;
+
+				if (treeView1.Items.Count == 0)
+					UserMessages.ShowWarningMessage("There is no processing tree to process");
+
 				var tmpRowHeaderSizeMode = dataGrid1.RowHeadersWidthSizeMode;
 				var tmpAutoSizeColumnsMode = dataGrid1.AutoSizeColumnsMode;
 				dataGrid1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader;
@@ -788,6 +801,94 @@ namespace GenericTextFunctions
 					TempUserMessages.ShowWarningMessage("Unable to open file: " + exc.Message);
 				}
 			}
+		}
+
+		ScaleTransform originalScale = new ScaleTransform(1, 1);
+		ScaleTransform smallScale = new ScaleTransform(0.2, 0.2);
+		private void Window_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			//if (e.ChangedButton == MouseButton.Middle)
+			{
+				ToggleBetweenNormalAndSmall();
+			}
+		}
+
+		private bool IsSmall()
+		{
+			return mainDockPanel.LayoutTransform == smallScale;
+		}
+
+		private void ToggleBetweenNormalAndSmall()
+		{
+			if (IsSmall())//Make big again
+				MakeNormalSize();
+			else//Make small
+				MakeSmall();
+		}
+
+		private void MakeSmall()
+		{
+			detectClipboardChangesAndAutoProcess = true;
+			mainDockPanel.LayoutTransform = smallScale;
+			this.Width = this.ActualWidth * smallScale.ScaleX;
+			this.Height = this.ActualHeight * smallScale.ScaleY;
+			this.WindowState = System.Windows.WindowState.Normal;
+			//this.WindowStyle = System.Windows.WindowStyle.None;
+			expander1.Visibility = System.Windows.Visibility.Collapsed;
+			treeView1.IsEnabled = false;
+			richTextBox1.Enabled = false;
+			this.Topmost = true;
+			this.UpdateLayout();
+		}
+
+		private void MakeNormalSize()
+		{
+			detectClipboardChangesAndAutoProcess = false;
+			mainDockPanel.LayoutTransform = originalScale;
+			this.WindowState = System.Windows.WindowState.Maximized;
+			//this.WindowStyle = System.Windows.WindowStyle.SingleBorderWindow;
+			expander1.Visibility = System.Windows.Visibility.Visible;
+			treeView1.IsEnabled = true;
+			richTextBox1.Enabled = true;
+			this.Topmost = false;
+			this.UpdateLayout();
+		}
+
+		bool detectClipboardChangesAndAutoProcess = false;
+		string lastClipboard = null;
+		private void Window_Activated(object sender, EventArgs e)
+		{
+			var clipboardText = Clipboard.GetText();
+			if (clipboardText != lastClipboard && !string.IsNullOrEmpty(clipboardText))
+			{
+				if (detectClipboardChangesAndAutoProcess)
+				{
+					//textBoxSearchText.Text = clipboardText;
+					//SearchText = clipboardText;
+					//textBoxSearchText.Focus();
+					//labelStatusbar.Text = "Pasted text into search box: " + clipboardText;
+					richTextBox1.SelectionFont = new System.Drawing.Font("Arial", 10);
+					richTextBox1.Font = richTextBox1.SelectionFont;
+					richTextBox1.Text = clipboardText;
+					ProcessInputTextToGrid();
+				}
+			}
+			lastClipboard = clipboardText;
+
+			//ShowNoCallbackNotificationInterop.ShowNotificationNoCallback_UsingExternalApp(
+			//    (err) => UserMessages.ShowErrorMessage(err),
+			//    "Activated");
+		}
+
+		private void Window_Deactivated(object sender, EventArgs e)
+		{
+			lastClipboard = Clipboard.GetText();
+		}
+
+		private void Window_StateChanged(object sender, EventArgs e)
+		{
+			if (this.WindowState == System.Windows.WindowState.Maximized && IsSmall())
+				MakeNormalSize();
 		}
 	}
 

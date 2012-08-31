@@ -1,0 +1,5 @@
+<TreeView>
+  <TreeViewItem DisplayName="For Each Line" TypeName="GenericTextFunctions.TextOperations+ForEachLine">
+    <TreeViewItem DisplayName="Write Same Cell With Prefix" PrefixText="," TypeName="GenericTextFunctions.TextOperations+WriteSameCellWithPrefix" />
+  </TreeViewItem>
+</TreeView>

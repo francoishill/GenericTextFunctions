@@ -55,6 +55,7 @@ namespace GenericTextFunctions
 		public interface ITextOperation
 		{
 			string DisplayName { get; }
+			string Tooltip { get; }
 			Control[] InputControls { get; }
 			bool HasInputControls { get; }
 			/// <summary>
@@ -74,6 +75,7 @@ namespace GenericTextFunctions
 		{
 			public const RegexOptions RegexOptionsToUse = RegexOptions.Singleline;//.Multiline;
 			public virtual string DisplayName { get { return this.GetType().Name.InsertSpacesBeforeCamelCase(); } }
+			public abstract string Tooltip { get; }
 			public virtual Control[] InputControls { get { return new Control[0]; } }
 			public bool HasInputControls { get { return InputControls != null && InputControls.Length > 0; } }
 			public abstract IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange);
@@ -127,6 +129,7 @@ namespace GenericTextFunctions
 
 		public class ForEachLine : TextOperation
 		{
+			public override string Tooltip { get { return "Breaks the 'current' text (of the input text) up into lines."; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
 				List<IntegerRange> tmpRanges = new List<IntegerRange>();
@@ -152,6 +155,7 @@ namespace GenericTextFunctions
 
 		public class ForEachRegex : TextOperation
 		{
+			public override string Tooltip { get { return "Breaks the 'current' text up into matches of this Regular Expression."; } }
 			private TextBox RegularExpression = new TextBox() { Name = "RegularExpression", MinWidth = 200 };
 			public override Control[] InputControls { get { return new Control[] { RegularExpression }; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
@@ -185,6 +189,7 @@ namespace GenericTextFunctions
 
 		public class IfItContains : TextOperation
 		{
+			public override string Tooltip { get { return "If the 'current' text contains this text."; } }
 			private TextBox SearchForText = new TextBox() { Name = "SearchForText", MinWidth = 100 };
 			public override Control[] InputControls { get { return new Control[] { SearchForText }; } }
 
@@ -203,6 +208,7 @@ namespace GenericTextFunctions
 
 		public class ExtractTextRange : TextOperation
 		{
+			public override string Tooltip { get { return "Extract a range, if -1 is specified for Length it will extract up to the end."; } }
 			private NumericUpDown StartPosition = new NumericUpDown() { Name = "StartPosition", Width = 50, MinValue = 0 };
 			private NumericUpDown Length = new NumericUpDown() { Name = "Length", Width = 50, MinValue = 0 };
 			public override Control[] InputControls { get { return new Control[] { StartPosition, Length }; } }
@@ -223,6 +229,7 @@ namespace GenericTextFunctions
 
 		public class ExtractRegex : TextOperation
 		{
+			public override string Tooltip { get { return "Extract the first match of a Regular Expression in the 'current' text."; } }
 			private TextBox RegularExpression = new TextBox() { Name = "RegularExpression", MinWidth = 200 };
 			public override Control[] InputControls { get { return new Control[] { RegularExpression }; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)//, IntegerRange InputParam)
@@ -254,6 +261,7 @@ namespace GenericTextFunctions
 
 		public class SplitUsingString : TextOperation
 		{
+			public override string Tooltip { get { return "Split the 'current' text into two strings using this text."; } }
 			private TextBox SplitTextOrChar = new TextBox() { Name = "SplitTextOrChar", MinWidth = 100 };
 			public override Control[] InputControls { get { return new Control[] { SplitTextOrChar }; } }
 
@@ -287,6 +295,7 @@ namespace GenericTextFunctions
 
 		public class SplitUsingCharacters : TextOperation
 		{
+			public override string Tooltip { get { return "Split the 'current' text into multiple strings using these characters."; } }
 			private TextBox SplitCharacters = new TextBox() { Name = "SplitCharacters", MinWidth = 100 };
 			public override Control[] InputControls { get { return new Control[] { SplitCharacters }; } }
 
@@ -320,6 +329,7 @@ namespace GenericTextFunctions
 
 		public class Trim : TextOperation
 		{
+			public override string Tooltip { get { return "Trim of the spaces at begin&end of 'current' text."; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
 				int tmpStartPos = textRange.Start.Value;
@@ -334,6 +344,7 @@ namespace GenericTextFunctions
 
 		public class GetPreviousLine : TextOperation
 		{
+			public override string Tooltip { get { return "Get the previous line before the 'current' text."; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
 				int prevLineStartPos = -1;
@@ -356,6 +367,7 @@ namespace GenericTextFunctions
 
 		public class GetPreviousNumberOfLines : TextOperation
 		{
+			public override string Tooltip { get { return "Get a number of lines before the 'current' text."; } }
 			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
 			public override Control[] InputControls { get { return new Control[] { NumberOfLines }; } }
 
@@ -393,6 +405,7 @@ namespace GenericTextFunctions
 
 		public class IfPreviousNumberOfLinesContains : TextOperation
 		{
+			public override string Tooltip { get { return "Checks if the previous lines (before 'current' text) contains this text. Optionally a blank can be returned if no match."; } }
 			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
 			private TextBox SearchForText = new TextBox() { Name = "SearchForText", MinWidth = 100 };
 			private CheckBox ReturnBlankIfNotFound = new CheckBox() { Name = "ReturnBlankIfNotFound", IsChecked = true };
@@ -441,6 +454,7 @@ namespace GenericTextFunctions
 
 		public class GetNextLine : TextOperation
 		{
+			public override string Tooltip { get { return "Get the next line after the 'current' text."; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
 				int nextLineStartPos = -1;
@@ -463,6 +477,7 @@ namespace GenericTextFunctions
 
 		public class GetNextNumberOfLines : TextOperation
 		{
+			public override string Tooltip { get { return "Get the next number of lines after the 'current' text."; } }
 			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
 			public override Control[] InputControls { get { return new Control[] { NumberOfLines }; } }
 
@@ -499,6 +514,7 @@ namespace GenericTextFunctions
 
 		public class IfNextNumberOfLinesContains : TextOperation
 		{
+			public override string Tooltip { get { return "Checks if the next number of lines (after the 'current' text) contains this text. Optionally a blank can be returned if not match."; } }
 			private NumericUpDown NumberOfLines = new NumericUpDown() { Name = "NumberOfLines", Width = 50 };
 			private TextBox SearchForText = new TextBox() { Name = "SearchForText", MinWidth = 100 };
 			private CheckBox ReturnBlankIfNotFound = new CheckBox() { Name = "ReturnBlankIfNotFound", IsChecked = true };
@@ -540,6 +556,7 @@ namespace GenericTextFunctions
 
 		public class MatchesRegularExpression : TextOperation
 		{
+			public override string Tooltip { get { return "Checks if the 'current' text matches a Regular Expression."; } }
 			private TextBox RegularExpression = new TextBox() { Name = "RegularExpression", MinWidth = 100 };
 			public override Control[] InputControls { get { return new Control[] { RegularExpression }; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
@@ -554,8 +571,9 @@ namespace GenericTextFunctions
 			}
 		}
 
-		public class WriteCell : TextOperationWithDataGridView
+		public class WriteCompleteCell : TextOperationWithDataGridView
 		{
+			public override string Tooltip { get { return "Writes the 'current' text in the 'current' cell of the Grid and then moves to the next cell."; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
 				if (dataGridView == null)
@@ -576,8 +594,58 @@ namespace GenericTextFunctions
 			}
 		}
 
-		public class GotoNextLine : TextOperationWithDataGridView
+		public class WriteSameCell : TextOperationWithDataGridView
 		{
+			public override string Tooltip { get { return "Writes the 'current' text in the 'current' cell in the Grid and stays in this cell."; } }
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				if (dataGridView == null)
+					return new IntegerRange[] { textRange };
+				if (dataGridView.ColumnCount <= CurrentGridColumn)
+					dataGridView.Columns.Add("Column" + (CurrentGridColumn + 1), "Column" + (CurrentGridColumn + 1));
+				if (dataGridView.Rows.Count == 0)
+				{
+					int newRowIndex = dataGridView.Rows.Add();
+					dataGridView.Rows[newRowIndex].HeaderCell.Value = (CurrentGridRow + 1).ToString();
+				}
+				dataGridView[CurrentGridColumn, CurrentGridRow].Value +=
+					textRange.IsFull() ? UsedText
+					: textRange.IsEmpty() ? ""
+					: UsedText.Substring(textRange.Start.Value, textRange.Length.Value >= 0 ? textRange.Length.Value : 0);
+				//CurrentGridColumn++;
+				return new IntegerRange[] { textRange };
+			}
+		}
+
+		public class WriteSameCellWithPrefix : TextOperationWithDataGridView
+		{
+			public override string Tooltip { get { return "Writes the 'current' text (with specified prefix) in the 'current' cell in the Grid and stays in this cell."; } }
+			private TextBox PrefixText = new TextBox() { Name = "PrefixText", MinWidth = 30 };
+			public override Control[] InputControls { get { return new Control[] { PrefixText }; } }
+			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
+			{
+				if (dataGridView == null)
+					return new IntegerRange[] { textRange };
+				if (dataGridView.ColumnCount <= CurrentGridColumn)
+					dataGridView.Columns.Add("Column" + (CurrentGridColumn + 1), "Column" + (CurrentGridColumn + 1));
+				if (dataGridView.Rows.Count == 0)
+				{
+					int newRowIndex = dataGridView.Rows.Add();
+					dataGridView.Rows[newRowIndex].HeaderCell.Value = (CurrentGridRow + 1).ToString();
+				}
+				dataGridView[CurrentGridColumn, CurrentGridRow].Value +=
+					(PrefixText.Text ?? "") +
+					(textRange.IsFull() ? UsedText
+					: textRange.IsEmpty() ? ""
+					: UsedText.Substring(textRange.Start.Value, textRange.Length.Value >= 0 ? textRange.Length.Value : 0));
+				//CurrentGridColumn++;
+				return new IntegerRange[] { textRange };
+			}
+		}
+
+		public class GotoNextRow : TextOperationWithDataGridView
+		{
+			public override string Tooltip { get { return "Moves to the next row in the Grid."; } }
 			public override IntegerRange[] ProcessText(ref string UsedText, IntegerRange textRange)
 			{
 				if (dataGridView == null)
@@ -592,6 +660,7 @@ namespace GenericTextFunctions
 
 		public class IfContainsThenExtractLength : TextOperation
 		{
+			public override string Tooltip { get { return "If the 'current' text contains this search text, then extract from where the match starts for the length specified (use -1 to extract up to end of 'current' text)."; } }
 			private TextBox TextToSeek = new TextBox() { Name = "TextToSeek", Width = 50 };
 			private NumericUpDown LengthToExtract = new NumericUpDown() { Name = "LengthToExtract", Width = 50, MinValue = 0 };
 			public override Control[] InputControls { get { return new Control[] { TextToSeek, LengthToExtract }; } }

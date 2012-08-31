@@ -19,11 +19,14 @@ namespace GenericTextFunctions
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			System.Windows.Forms.Application.EnableVisualStyles();
-			SharedClasses.AutoUpdatingForm.CheckForUpdates(
-				exitApplicationAction: () => Dispatcher.Invoke((Action)delegate { this.Shutdown(); }),
-				ActionIfUptoDate_Versionstring: (versionstring) => CurrentVersionString = versionstring,
-				ActionIfUnableToCheckForUpdates: (errms) => CannotCheckVersionError = errms,
-				ShowModally: true);
+			
+			SharedClasses.AutoUpdating.CheckForUpdates(
+			//SharedClasses.AutoUpdatingForm.CheckForUpdates(
+				//exitApplicationAction: () => Dispatcher.Invoke((Action)delegate { this.Shutdown(); }),
+				ActionIfUptoDate_Versionstring: (versionstring) => CurrentVersionString = versionstring);//,
+				//ActionIfUnableToCheckForUpdates: (errms) => CannotCheckVersionError = errms,
+				//ShowModally: true);
+
 			base.OnStartup(e);
 		}
 	}

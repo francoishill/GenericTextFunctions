@@ -5,12 +5,15 @@
 		xmlns:winforms='clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms'
 		xmlns:avalon="http://avalondock.codeplex.com"
 		Title="MainWindow"
-		Height="550"
-		Width="1225"
 		Loaded='Window_Loaded'
 		WindowStartupLocation='CenterScreen'
 		WindowState='Maximized'
-		Icon="app.ico">
+		Icon="app.ico"
+		UseLayoutRounding='True'
+		PreviewMouseDoubleClick='Window_PreviewMouseDoubleClick'
+		Activated='Window_Activated'
+		Deactivated='Window_Deactivated'
+		StateChanged='Window_StateChanged'>
 	<!--xmlns:avalon="clr-namespace:AvalonDock;assembly=AvalonDock"-->
 	<Window.Resources>
 		<ResourceDictionary>
@@ -32,7 +35,8 @@
 								BorderBrush='#888'
 								BorderThickness='1'
 								Padding='15,5'
-								Margin='5,5,0,0'>
+								Margin='5,5,0,0'
+								ToolTip='{Binding Tooltip}'>
 							<Border.Background>
 								<LinearGradientBrush StartPoint="0,0"
 													 EndPoint="0,1">
@@ -92,7 +96,7 @@
 		</ResourceDictionary>
 	</Window.Resources>
 	<!--<Grid>-->
-	<DockPanel LastChildFill='True'>
+	<DockPanel Name='mainDockPanel' LastChildFill='True'>
 		<!--<Grid.ColumnDefinitions>
 			<ColumnDefinition />
 		</Grid.ColumnDefinitions>

@@ -2,8 +2,8 @@
   <TreeViewItem DisplayName="For Each Line" TypeName="GenericTextFunctions.TextOperations+ForEachLine">
     <TreeViewItem DisplayName="Split Using Characters" SplitCharacters=" ,|/\" TypeName="GenericTextFunctions.TextOperations+SplitUsingCharacters">
       <TreeViewItem DisplayName="If Contains Then Extract Length" TextToSeek="978" LengthToExtract="13" TypeName="GenericTextFunctions.TextOperations+IfContainsThenExtractLength">
-        <TreeViewItem DisplayName="Write Cell" TypeName="GenericTextFunctions.TextOperations+WriteCell" />
-        <TreeViewItem DisplayName="Advance New Line" TypeName="GenericTextFunctions.TextOperations+AdvanceNewLine" />
+        <TreeViewItem DisplayName="Write Complete Cell" TypeName="GenericTextFunctions.TextOperations+WriteCompleteCell" />
+        <TreeViewItem DisplayName="Goto Next Row" TypeName="GenericTextFunctions.TextOperations+GotoNextRow" />
       </TreeViewItem>
     </TreeViewItem>
   </TreeViewItem>
