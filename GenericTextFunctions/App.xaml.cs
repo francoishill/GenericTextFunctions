@@ -20,6 +20,18 @@ namespace GenericTextFunctions
 		{
 			System.Windows.Forms.Application.EnableVisualStyles();
 			
+			AppDomain.CurrentDomain.UnhandledException += (snd, unhandledExc) =>
+			{
+				Exception exc = (Exception)unhandledExc.ExceptionObject;
+				UserMessages.ShowErrorMessage("Generic Text Functions has experienced an unknown error, take a screenshot of this message and email it to the developer."
+					+ Environment.NewLine
+					+ Environment.NewLine + "Exception message:"
+					+ Environment.NewLine + exc.Message
+					+ Environment.NewLine
+					+ Environment.NewLine + "Stacktrace:"
+					+ Environment.NewLine + exc.StackTrace);
+			};
+
 			SharedClasses.AutoUpdating.CheckForUpdates(
 			//SharedClasses.AutoUpdatingForm.CheckForUpdates(
 				//exitApplicationAction: () => Dispatcher.Invoke((Action)delegate { this.Shutdown(); }),

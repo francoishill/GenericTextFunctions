@@ -21,6 +21,7 @@ using System.Windows.Interop;
 using SharedClasses;
 using AvalonDock.Layout.Serialization;
 using AvalonDock.Layout;
+using NUnit.Framework;
 
 namespace GenericTextFunctions
 {
@@ -460,7 +461,7 @@ namespace GenericTextFunctions
 			ProcessInputTextToGrid();
 		}
 
-		private void ProcessInputTextToGrid()
+		internal void ProcessInputTextToGrid()
 		{
 			if (IsBusyProcess)
 				TempUserMessages.ShowWarningMessage("Already busy processing, please wait for it to finish.");
@@ -1070,4 +1071,32 @@ namespace GenericTextFunctions
 		}
 	}
 	#endregion Converters
+
+	#region Tests using NUnit
+	[TestFixture]
+	public class TestingWithNUnit
+	{
+		MainWindow mainwindow;
+		[SetUp]
+		public void SetupTests()
+		{
+			mainwindow = new MainWindow();
+			mainwindow.Show();
+		}
+		[Test]
+		public void TestInputOutput()
+		{
+			mainwindow.richTextBox1.Text =
+				string.Join(Environment.NewLine, "Line 1", "Line 2", "Line 3", "Line 4");
+			mainwindow.ProcessInputTextToGrid();
+		}
+		[TearDown]
+		public void TeardownTests()
+		{
+			if (mainwindow.IsVisible)
+				mainwindow.Close();
+			mainwindow = null;
+		}
+	}
+	#endregion Tests using NUnit
 }
