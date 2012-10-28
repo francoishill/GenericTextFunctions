@@ -891,6 +891,11 @@ namespace GenericTextFunctions
 			if (this.WindowState == System.Windows.WindowState.Maximized && IsSmall())
 				MakeNormalSize();
 		}
+
+		private void LayoutAnchorable_Closed(object sender, EventArgs e)
+		{
+			((LayoutAnchorable)sender).Show();
+		}
 	}
 
 	#region ExtensionMethods

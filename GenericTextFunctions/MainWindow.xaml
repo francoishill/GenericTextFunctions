@@ -179,7 +179,9 @@
 				<avalon:LayoutPanel Orientation="Horizontal">
 					<avalon:LayoutAnchorablePane DockWidth='600'>
 						<avalon:LayoutAnchorable Title='Processing tree'
-												 CanClose='False'>
+												 CanClose='False'
+												 Closed='LayoutAnchorable_Closed'
+												 CanHide='False'>
 							<DockPanel Grid.Column='1'>
 								<DockPanel DockPanel.Dock='Bottom'
 										   Margin='0,0,3,10'>
@@ -226,7 +228,8 @@
 					<avalon:LayoutPanel Orientation='Vertical'>
 						<avalon:LayoutAnchorablePane DockHeight='200'>
 							<avalon:LayoutAnchorable Title='Input rich text'
-													 CanClose='False'>
+													 CanClose='False'
+													 CanHide='False'>
 								<WindowsFormsHost Grid.Column='0'
 												  Margin='0,0,5,0'>
 									<winforms:RichTextBox x:Name='richTextBox1'
@@ -235,7 +238,8 @@
 							</avalon:LayoutAnchorable>
 						</avalon:LayoutAnchorablePane>
 						<avalon:LayoutDocumentPane>
-							<avalon:LayoutAnchorable Title='Output grid'>
+							<avalon:LayoutAnchorable Title='Output grid'
+													 CanClose='False'>
 								<DockPanel Grid.Column='2'
 										   LastChildFill='True'
 										   Margin='10'>
