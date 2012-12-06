@@ -73,6 +73,12 @@
     <Reference Include="AvalonDock.Themes.Aero">
       <HintPath>..\..\..\DLLs\AvalonDock\AvalonDock.Themes.Aero.dll</HintPath>
     </Reference>
+    <Reference Include="AvalonDock.Themes.Expression">
+      <HintPath>..\..\..\DLLs\AvalonDock\AvalonDock.Themes.Expression.dll</HintPath>
+    </Reference>
+    <Reference Include="AvalonDock.Themes.Metro">
+      <HintPath>..\..\..\DLLs\AvalonDock\AvalonDock.Themes.Metro.dll</HintPath>
+    </Reference>
     <Reference Include="AvalonDock.Themes.VS2010">
       <HintPath>..\..\..\DLLs\AvalonDock\AvalonDock.Themes.VS2010.dll</HintPath>
     </Reference>
