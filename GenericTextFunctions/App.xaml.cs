@@ -32,12 +32,17 @@ namespace GenericTextFunctions
 					+ Environment.NewLine + exc.StackTrace);
 			};
 
-			SharedClasses.AutoUpdating.CheckForUpdates(
+			SharedClasses.AutoUpdating.CheckForUpdates_ExceptionHandler(
+				delegate
+				{
+					CurrentVersionString = SharedClasses.AutoUpdating.GetThisAppVersionString();
+				});
+			/*SharedClasses.AutoUpdating.CheckForUpdates(
 			//SharedClasses.AutoUpdatingForm.CheckForUpdates(
 				//exitApplicationAction: () => Dispatcher.Invoke((Action)delegate { this.Shutdown(); }),
 				ActionIfUptoDate_Versionstring: (versionstring) => CurrentVersionString = versionstring);//,
 				//ActionIfUnableToCheckForUpdates: (errms) => CannotCheckVersionError = errms,
-				//ShowModally: true);
+				//ShowModally: true);*/
 
 			base.OnStartup(e);
 		}
