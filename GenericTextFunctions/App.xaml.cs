@@ -20,7 +20,7 @@ namespace GenericTextFunctions
 		{
 			System.Windows.Forms.Application.EnableVisualStyles();
 			
-			AppDomain.CurrentDomain.UnhandledException += (snd, unhandledExc) =>
+			/*AppDomain.CurrentDomain.UnhandledException += (snd, unhandledExc) =>
 			{
 				Exception exc = (Exception)unhandledExc.ExceptionObject;
 				UserMessages.ShowErrorMessage("Generic Text Functions has experienced an unknown error, take a screenshot of this message and email it to the developer."
@@ -30,7 +30,7 @@ namespace GenericTextFunctions
 					+ Environment.NewLine
 					+ Environment.NewLine + "Stacktrace:"
 					+ Environment.NewLine + exc.StackTrace);
-			};
+			};*/
 
 			SharedClasses.AutoUpdating.CheckForUpdates_ExceptionHandler(
 				delegate
@@ -45,6 +45,9 @@ namespace GenericTextFunctions
 				//ShowModally: true);*/
 
 			base.OnStartup(e);
+
+			GenericTextFunctions.MainWindow mw = new MainWindow();
+			mw.ShowDialog();
 		}
 	}
 }

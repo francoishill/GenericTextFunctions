@@ -116,6 +116,10 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Compile Include="..\..\SharedClasses\AboutWindow2.xaml.cs">
+      <Link>ABI\AboutWindow2.xaml.cs</Link>
+      <DependentUpon>AboutWindow2.xaml</DependentUpon>
+    </Compile>
     <Compile Include="..\..\SharedClasses\AppTypeIndependant.cs">
       <Link>AppTypeIndependant.cs</Link>
     </Compile>
@@ -205,6 +209,11 @@
     </Compile>
     <Compile Include="TempUserMessages.cs" />
     <Compile Include="TextOperationClasses.cs" />
+    <Page Include="..\..\SharedClasses\AboutWindow2.xaml">
+      <Link>ABI\AboutWindow2.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="..\..\SharedClasses\UnhandledExceptionsWindow.xaml">
       <Link>UnhandledExceptionsWindow.xaml</Link>
       <Generator>MSBuild:Compile</Generator>

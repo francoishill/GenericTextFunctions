@@ -38,7 +38,7 @@ namespace GenericTextFunctions
 		{
 			//Build the following into this app:
 			//1. tickbox to automatically pick up clipboard changes, paste inside "Input rich text" block
-				//Also have tickbox to say automatically process on pasted (so only if application is active)
+			//Also have tickbox to say automatically process on pasted (so only if application is active)
 
 			InitializeComponent();
 
@@ -895,6 +895,15 @@ namespace GenericTextFunctions
 		private void LayoutAnchorable_Closed(object sender, EventArgs e)
 		{
 			((LayoutAnchorable)sender).Show();
+		}
+
+		private void menuitemAbout_Click(object sender, RoutedEventArgs e)
+		{
+			AboutWindow2.ShowAboutWindow(new System.Collections.ObjectModel.ObservableCollection<DisplayItem>()
+			{
+				new DisplayItem("Author", "Francois Hill"),
+				new DisplayItem("Icon(s) obtained from", null)
+			});
 		}
 	}
 
