@@ -257,17 +257,17 @@ namespace GenericTextFunctions
 		private void treeView1_Drop(object sender, DragEventArgs e)
 		{
 			//if (e.Data != null && e.Data.GetDataPresent(typeof(ITextOperation).FullName))
-			Type dataType = Assembly.GetExecutingAssembly().GetType(e.Data.GetFormats()[0]);//TODO: Must also support more than one format
+			Type dataType = Assembly.GetExecutingAssembly().GetType(e.Data.GetFormats()[0]);
 			if (e.Data != null && dataType != null && HasITextOperationInterface(dataType))
 			{
 				ITextOperation dropTarget = FindDropTreeViewItem(e) == null ? null : FindDropTreeViewItem(e).Header as ITextOperation;
 
-				ITextOperation droppedItem = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;//TODO: Must also support more than one format
+				ITextOperation droppedItem = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;
 
 				bool isMoving = e.AllowedEffects == DragDropEffects.Move;
 				bool hasbeenRemoved = false;
 
-				//TODO: Must also check if the the droppedItem is not dropped unto one of its own children
+				//Must also check if the the droppedItem is not dropped unto one of its own children
 				if (droppedItem != null && droppedItem.ContainsChildInTree(ref dropTarget))
 				{
 					TempUserMessages.ShowWarningMessage("Cannot drop unto one of its own children.");
@@ -424,11 +424,11 @@ namespace GenericTextFunctions
 			//}
 
 			//if (e.Data != null && e.Data.GetDataPresent(typeof(ITextOperation).FullName))
-			Type dataType = Assembly.GetExecutingAssembly().GetType(e.Data.GetFormats()[0]);//TODO: Must also support more than one format
+			Type dataType = Assembly.GetExecutingAssembly().GetType(e.Data.GetFormats()[0]);
 			if (e.Data != null && dataType != null && HasITextOperationInterface(dataType))
 			{
 				//ITextOperation ddo = e.Data.GetData(typeof(ITextOperation).FullName) as ITextOperation;
-				ITextOperation ddo = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;//TODO: Must also support more than one format
+				ITextOperation ddo = e.Data.GetData(e.Data.GetFormats()[0]) as ITextOperation;
 
 				TreeViewItem originalItem = treeView1.ContainerFromItem(ddo);
 				if (originalItem != null)

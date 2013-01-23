@@ -217,7 +217,8 @@ namespace GenericTextFunctions
 			{
 				return new IntegerRange[]
 				{
-					//TODO: textRange.Length not used here, so if Length.Value is larger than textRange.Length it will work but is actually wrong..?
+					//textRange.Length not used here, so if Length.Value is larger than
+					//textRange.Length, it will work but is actually wrong..?
 					new IntegerRange(
 						(uint)(textRange.Start + StartPosition.Value),
 						(uint)(Length.Value == -1
@@ -673,7 +674,8 @@ namespace GenericTextFunctions
 				if (startIndexOfTextToSeek != -1)
 					return new IntegerRange[]
 					{
-						//TODO: textRange.Length not used here, so if Length.Value is larger than textRange.Length it will work but is actually wrong..?
+						//textRange.Length not used here, so if Length.Value is larger than
+					//textRange.Length, it will work but is actually wrong..?
 						new IntegerRange(
 							(uint)(textRange.Start + startIndexOfTextToSeek),
 							(uint)(LengthToExtract.Value == -1
