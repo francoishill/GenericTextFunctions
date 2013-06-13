@@ -13,7 +13,7 @@ using eisiWare;
 using System.Windows.Threading;
 using System.Threading;
 using System.Diagnostics;
-using ITextOperation = GenericTextFunctions.TextOperations.ITextOperation;
+using ITextOperation = SharedClasses.TextOperations.ITextOperation;
 using System.Reflection;
 using System.Linq;
 using System.IO;
@@ -455,293 +455,31 @@ namespace GenericTextFunctions
 			System.Windows.Forms.MessageBox.Show("Function not incorporated yet.");
 		}
 
-		private bool IsBusyProcess = false;
 		private void buttonProcessNow_Click(object sender, RoutedEventArgs e)
 		{
-			ProcessInputTextToGrid();
-		}
-
-		internal void ProcessInputTextToGrid()
-		{
-			if (IsBusyProcess)
-				TempUserMessages.ShowWarningMessage("Already busy processing, please wait for it to finish.");
-			else
-			{
-				IsBusyProcess = true;
-
-				if (treeView1.Items.Count == 0)
-					UserMessages.ShowWarningMessage("There is no processing tree to process");
-
-				var tmpRowHeaderSizeMode = dataGrid1.RowHeadersWidthSizeMode;
-				var tmpAutoSizeColumnsMode = dataGrid1.AutoSizeColumnsMode;
-				dataGrid1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader;
-				dataGrid1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-				dataGrid1.SuspendLayout();
-				new Action(delegate
-				{
-					dataGrid1.Rows.Clear();
-					//dataGrid1.Rows.Add();
-					currentGridRow = 0;
-					dataGrid1.Columns.Clear();
-					currentGridColumn = 0;
-
-					string richTextboxText = richTextBox1.Text;
-
-					foreach (ITextOperation ddo in treeView1.Items)
-					{
-						TreeViewItem tvi = treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem;
-						ProcessTreeViewItem(tvi, ref richTextboxText, IntegerRange.Full);
-					}
-				}).PerformTimedActionAndUpdateStatus(
-					textFeedbackEvent,
-					"Processing text, please wait...",
-					"Processing completed with duration of {0} seconds. Total row count = {1}",
-					7000,
-					new Func<string>(() => (dataGrid1.RowCount - 1).ToString()));
-				dataGrid1.ResumeLayout();
-				dataGrid1.RowHeadersWidthSizeMode = tmpRowHeaderSizeMode;
-
-				int[] colwidths = new int[dataGrid1.ColumnCount];
-				for (int i = 0; i < colwidths.Length; i++)
-					colwidths[i] = dataGrid1.Columns[i].Width;
-				dataGrid1.AutoSizeColumnsMode = tmpAutoSizeColumnsMode;
-				for (int i = 0; i < colwidths.Length; i++)
-					dataGrid1.Columns[i].Width = colwidths[i];
-
-				IsBusyProcess = false;
-			}
-		}
-
-		int currentGridRow = 0;
-		int currentGridColumn = 0;
-		private void ProcessTreeViewItem(TreeViewItem tvi, ref string usedText, IntegerRange textRangeToUse)
-		{
-			if (tvi == null) return;
-			ITextOperation textop = tvi.Header as ITextOperation;
-			if (textop == null) return;
-
-			if (textop is TextOperations.ITextOperation)//<string>)
-			{
-				TextOperations.ITextOperation textOperation = textop as TextOperations.ITextOperation;
-				TextOperations.TextOperationWithDataGridView toWithDg = textOperation as TextOperations.TextOperationWithDataGridView;
-
-				if (toWithDg != null)
-					toWithDg.SetDataGridAndProperties(ref dataGrid1, currentGridColumn, currentGridRow);
-
-				IntegerRange[] rangesToUse = textOperation.ProcessText(ref usedText, textRangeToUse);
-
-				if (toWithDg != null)
-				{
-					currentGridColumn = toWithDg.GetNewColumnIndex();
-					currentGridRow = toWithDg.GetNewRowIndex();
-				}
-
-				foreach (IntegerRange ir in rangesToUse)
-					foreach (ITextOperation ddo1 in tvi.Items)
-					{
-						TreeViewItem tvi1 = tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem;
-						ProcessTreeViewItem(tvi1, ref usedText, ir);
-					}
-			}
+			TextOperationsUI.ProcessInputTextToGrid(this.richTextBox1.Text, /*this.treeView1*/CurrentList, this.dataGrid1, this.textFeedbackEvent);
 		}
 
 		private void MenuitemExportProcessFile_Click(object sender, RoutedEventArgs e)
 		{
-			ExportProcessFile();
-		}
-
-		private void ExportProcessFile()
-		{
-			SaveFileDialog sfd = new SaveFileDialog();
-			sfd.Filter = "Xml files (*.xml)|*.xml";
-			if (sfd.ShowDialog().Value)
-			{
-				using (var xw = new XmlTextWriter(sfd.FileName, System.Text.Encoding.ASCII) { Formatting = Formatting.Indented })
-				{
-					xw.WriteStartElement("TreeView");
-					foreach (ITextOperation ddo in treeView1.Items)
-						WriteTreeViewItemToXmlTextWriter(treeView1.ItemContainerGenerator.ContainerFromItem(ddo) as TreeViewItem, xw);
-					xw.WriteEndElement();
-				}
-			}
-		}
-
-		private void WriteTreeViewItemToXmlTextWriter(TreeViewItem tvi, XmlTextWriter xmltextWriter)
-		{
-			ITextOperation textop = tvi.Header as ITextOperation;
-
-			xmltextWriter.WriteStartElement("TreeViewItem");
-			xmltextWriter.WriteAttributeString("DisplayName", textop.DisplayName);
-			WriteInputControlsToXmlTextWriter(textop, xmltextWriter);
-			if (textop != null)
-				xmltextWriter.WriteAttributeString("TypeName", textop.GetType().FullName);
-			foreach (ITextOperation ddo1 in tvi.Items)
-				WriteTreeViewItemToXmlTextWriter(tvi.ItemContainerGenerator.ContainerFromItem(ddo1) as TreeViewItem, xmltextWriter);
-			xmltextWriter.WriteEndElement();
-		}
-
-		private void WriteInputControlsToXmlTextWriter(ITextOperation textop, XmlTextWriter xmltextWriter)
-		{
-			List<string> tmpNameList = new List<string>();
-			if (textop == null || !textop.HasInputControls)
-				return;
-			foreach (Control control in textop.InputControls)
-			{
-				string InputControlValue = "";
-				if (control is TextBox)
-					InputControlValue = (control as TextBox).Text;
-				else if (control is NumericUpDown)
-					InputControlValue = (control as NumericUpDown).Value.ToString();
-				else if (control is CheckBox)
-					InputControlValue = (control as CheckBox).IsChecked == null ? false.ToString() : (control as CheckBox).IsChecked.Value.ToString();
-				else
-					TempUserMessages.ShowWarningMessage("Input control type not supported: " + control.GetType().Name);
-
-				if (string.IsNullOrWhiteSpace(control.Name))
-					TempUserMessages.ShowWarningMessage("No name found for InputControl in " + textop.DisplayName);
-				else if (tmpNameList.Contains(control.Name))
-					TempUserMessages.ShowWarningMessage("Duplicate control names found: " + control.Name);
-				else
-				{
-					tmpNameList.Add(control.Name);
-					xmltextWriter.WriteAttributeString(control.Name, InputControlValue);
-				}
-			}
+			TextOperationsUI.ExportProcessFile(CurrentList, treeView1);
 		}
 
 		private void MenuitemImportProcessFile_Click(object sender, RoutedEventArgs e)
 		{
-			ImportProcessFile();
-		}
-
-		private void ImportProcessFile()
-		{
-			OpenFileDialog ofd = new OpenFileDialog();
-			ofd.Filter = "Xml files (*.xml)|*.xml";
-			if (ofd.ShowDialog().Value)
-			{
-				if (treeView1.Items.Count == 0 || TempUserMessages.Confirm("The operation list is currently not empty and will be cleared when importing file, continue?"))
-				{
-					//treeView1.Items.Clear();
-					CurrentList.Clear();
-
-					XmlDocument xmlDoc = new XmlDocument();
-					xmlDoc.Load(ofd.FileName);
-					XmlNodeList tvitems = xmlDoc.SelectNodes("TreeView/TreeViewItem");
-					foreach (XmlNode node in tvitems)
-						AddNodeAndSubNodesToTreeviewItem(null, node);
-				}
-			}
-		}
-
-		private void AddNodeAndSubNodesToTreeviewItem(TreeViewItem baseTreeViewItem, XmlNode xmlnode)
-		{
-			string tmpName = xmlnode.Attributes["DisplayName"].Value;
-			if (string.IsNullOrWhiteSpace(tmpName))
-				TempUserMessages.ShowWarningMessage("Cannot read TreeViewItem name: " + xmlnode.OuterXml);
-			else
-			{
-				string typeFullName = xmlnode.Attributes["TypeName"].Value;
-				if (string.IsNullOrWhiteSpace(typeFullName))
-					TempUserMessages.ShowWarningMessage("Cannot read TypeName from '" + tmpName + "' node: " + xmlnode.OuterXml);
-				else
-				{
-					TextOperations.ITextOperation to = GetNewITextOperationFromTypeFullName(typeFullName);
-					if (to == null)
-						TempUserMessages.ShowWarningMessage("Could not create new object from FullName = " + typeFullName);
-					else
-					{
-						PopulateInputControlsFromXmlNode(to, xmlnode);
-						//ITextOperation ddo = new ITextOperation(to);
-
-						if (baseTreeViewItem == null)
-						{
-							//treeView1.Items.Add(ddo);
-							CurrentList.Add(to);
-							treeView1.UpdateLayout();
-							XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
-							foreach (XmlNode node in subnodes)
-								AddNodeAndSubNodesToTreeviewItem(treeView1.ItemContainerGenerator.ContainerFromItem(to) as TreeViewItem, node);
-						}
-						else
-						{
-							//baseTreeViewItem.Items.Add(ddo);
-							(baseTreeViewItem.Header as ITextOperation).Children.Add(to);
-							baseTreeViewItem.IsExpanded = true;
-							baseTreeViewItem.UpdateLayout();
-							XmlNodeList subnodes = xmlnode.SelectNodes("TreeViewItem");
-							foreach (XmlNode node in subnodes)
-								AddNodeAndSubNodesToTreeviewItem(baseTreeViewItem.ItemContainerGenerator.ContainerFromItem(to) as TreeViewItem, node);
-						}
-					}
-				}
-			}
-		}
-
-
-		private void PopulateInputControlsFromXmlNode(TextOperations.ITextOperation to, XmlNode xmlnode)
-		{
-			foreach (Control control in to.InputControls)
-			{
-				string tmpControlValue = xmlnode.Attributes[control.Name].Value;
-				//if (string.IsNullOrWhiteSpace(tmpControlName))
-				if (string.IsNullOrEmpty(tmpControlValue))//Do not use IsNullOrWhiteSpace otherwise if for instance the SplitUsingString textbox value was " " it will warn
-					TempUserMessages.ShowWarningMessage("Could not populate control value, cannot find attribute '" + control.Name + "': " + xmlnode.OuterXml);
-				else
-				{
-					if (control is TextBox)
-						(control as TextBox).Text = tmpControlValue;
-					else if (control is NumericUpDown)
-					{
-						int intval;
-						if (!int.TryParse(tmpControlValue, out intval))
-							TempUserMessages.ShowWarningMessage("Invalid numeric value for " + control.Name + ": " + xmlnode.OuterXml);
-						else
-						{
-							(control as NumericUpDown).Value = intval;
-						}
-					}
-					else if (control is CheckBox)
-					{
-						bool boolval;
-						if (!bool.TryParse(tmpControlValue, out boolval))
-						{
-							TempUserMessages.ShowWarningMessage("Invalid string for checkbox checked (boolean) value: '" + tmpControlValue + "', will use false");
-							(control as CheckBox).IsChecked = false;
-						}
-						else
-							(control as CheckBox).IsChecked = boolval;
-					}
-					else
-						TempUserMessages.ShowWarningMessage("Input control type not supported: " + control.GetType().Name);
-				}
-			}
-		}
-
-		private static TextOperations.ITextOperation GetNewITextOperationFromTypeFullName(string typeName)
-		{
-			foreach (Type to in typeof(TextOperations).GetNestedTypes())
-			{
-				if (to.IsClass && !to.IsAbstract)
-					if (to.GetInterface(typeof(TextOperations.ITextOperation).Name) != null)//<dynamic>).Name) != null)
-					{
-						if (to.FullName.Equals(typeName, StringComparison.InvariantCultureIgnoreCase))
-						{
-							return to.GetConstructor(new Type[0]).Invoke(new object[0]) as TextOperations.ITextOperation;
-						}
-					}
-			}
-			return null;
+			string tmpurl;
+			TextOperationsUI.ImportProcessFile(CurrentList, treeView1, out tmpurl);
 		}
 
 		private void buttonImportFile_Click(object sender, RoutedEventArgs e)
 		{
-			ImportProcessFile();
+			string tmpurl;
+			TextOperationsUI.ImportProcessFile(CurrentList, treeView1, out tmpurl);
 		}
 
 		private void buttonExportFile_Click(object sender, RoutedEventArgs e)
 		{
-			ExportProcessFile();
+			TextOperationsUI.ExportProcessFile(CurrentList, treeView1);
 		}
 
 		private void listBox1_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -809,6 +547,7 @@ namespace GenericTextFunctions
 		private void Window_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
 			//if (e.ChangedButton == MouseButton.Middle)
+			if (Keyboard.IsKeyDown(Key.LeftCtrl))
 			{
 				ToggleBetweenNormalAndSmall();
 			}
@@ -871,7 +610,7 @@ namespace GenericTextFunctions
 					richTextBox1.SelectionFont = new System.Drawing.Font("Arial", 10);
 					richTextBox1.Font = richTextBox1.SelectionFont;
 					richTextBox1.Text = clipboardText;
-					ProcessInputTextToGrid();
+					TextOperationsUI.ProcessInputTextToGrid(this.richTextBox1.Text, /*this.treeView1*/ CurrentList, this.dataGrid1, this.textFeedbackEvent);
 				}
 			}
 			lastClipboard = clipboardText;
@@ -910,55 +649,6 @@ namespace GenericTextFunctions
 	#region ExtensionMethods
 	public static class ExtensionMethods
 	{
-		/// <summary>
-		/// The actionToPerform will be performed and status will be updated before and after (including the time taken).
-		/// </summary>
-		/// <param name="actionToPerform">The action to perform.</param>
-		/// <param name="StatusToSayStarting">The status text to say the action is starting, please wait.</param>
-		/// <param name="StatusToSayCompletedAddZeroParameter">The status text to say it is completed i.e. "Action completed in {0} seconds.</param>
-		/*/// <param name="MakeProgressbarVisibleDuring">Whether the progressbar should be made visible during the action.</param>*/
-		/// <param name="completionMessageTimeout">The timeout after how long the message showed for completion is hidden.</param>
-		public static void PerformTimedActionAndUpdateStatus(this Action actionToPerform, TextFeedbackEventHandler textFeedbackEvent, string StatusToSayStarting, string StatusToSayCompletedAddZeroParameter, /*bool MakeProgressbarVisibleDuring, */int completionMessageTimeout = 0, params Func<string>[] AdditionalArguments)
-		{
-			if (textFeedbackEvent == null)
-				textFeedbackEvent = new TextFeedbackEventHandler(delegate { });
-
-			textFeedbackEvent(actionToPerform, new TextFeedbackEventArgs(StatusToSayStarting));
-
-			DoEvents();
-			Stopwatch sw = Stopwatch.StartNew();
-			actionToPerform();
-			sw.Stop();
-			//string completionMessage = string.Format(StatusToSayCompletedAddZeroParameter, Math.Round(sw.Elapsed.TotalSeconds, 3));
-			string completionMessage = StatusToSayCompletedAddZeroParameter.Replace("{0}", Math.Round(sw.Elapsed.TotalSeconds, 3).ToString());
-			for (int i = 0; i < AdditionalArguments.Length; i++)
-				completionMessage = completionMessage.Replace("{" + (i + 1) + "}", AdditionalArguments[i]());
-			textFeedbackEvent(actionToPerform, new TextFeedbackEventArgs(completionMessage));
-			if (completionMessageTimeout > 0)
-			{
-				System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
-				timer.Interval = completionMessageTimeout;
-				timer.Tag = completionMessage;
-				timer.Tick += (s, e) =>
-				{
-					System.Windows.Forms.Timer t = s as System.Windows.Forms.Timer;
-					if (t == null) return;
-					t.Stop();
-					if (t.Tag != null && t.Tag.ToString() == completionMessage)
-						textFeedbackEvent(actionToPerform, new TextFeedbackEventArgs(null));
-					t.Dispose();
-					t = null;
-				};
-				timer.Start();
-			}
-			DoEvents();
-		}
-
-		public static void DoEvents()
-		{
-			System.Windows.Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new ThreadStart(delegate { }));
-		}
-
 		public static string InsertSpacesBeforeCamelCase(this string s)
 		{
 			if (s == null) return s;
@@ -997,23 +687,6 @@ namespace GenericTextFunctions
 					return recursionResult;
 			}
 			return null;
-		}
-
-		public static void CopyControlValue(this Control control, ref Control otherControl)
-		{
-			if (control == null || otherControl == null)
-				return;
-			if (control.GetType() != otherControl.GetType())
-				return;
-
-			if (control is TextBox)
-				(otherControl as TextBox).Text = (control as TextBox).Text;
-			else if (control is NumericUpDown)
-				(otherControl as NumericUpDown).Value = (control as NumericUpDown).Value;
-			else if (control is CheckBox)
-				(otherControl as CheckBox).IsChecked = (control as CheckBox).IsChecked;
-			else
-				TempUserMessages.ShowWarningMessage(string.Format("Currently control of type '{0}' is currently not supported in cloning."));
 		}
 	}
 	#endregion ExtensionMethods
@@ -1102,7 +775,11 @@ namespace GenericTextFunctions
 		{
 			mainwindow.richTextBox1.Text =
 				string.Join(Environment.NewLine, "Line 1", "Line 2", "Line 3", "Line 4");
-			mainwindow.ProcessInputTextToGrid();
+			List<ITextOperation> list = new List<ITextOperation>();
+			foreach (var obj in mainwindow.treeView1.Items)
+				list.Add(obj as ITextOperation);
+
+			TextOperationsUI.ProcessInputTextToGrid(mainwindow.richTextBox1.Text, /*mainwindow.treeView1*/list, mainwindow.dataGrid1, null);
 		}
 		[TearDown]
 		public void TeardownTests()

@@ -1,0 +1,21 @@
+<TreeView Url="http://www.mrpricehome.com/Furniture/Office/Desks.aspx">
+  <TreeViewItem DisplayName="For Each Line" TypeName="SharedClasses.TextOperations+ForEachLine">
+    <TreeViewItem DisplayName="If It Contains" SearchForText="class=&quot;productname&quot;" TypeName="SharedClasses.TextOperations+IfItContains">
+      <TreeViewItem DisplayName="If Next Number Of Lines Contains" NumberOfLines="2" SearchForText="black and red glass desk" ReturnBlankIfNotFound="False" TypeName="SharedClasses.TextOperations+IfNextNumberOfLinesContains">
+        <TreeViewItem DisplayName="Get Next Number Of Lines" NumberOfLines="3" TypeName="SharedClasses.TextOperations+GetNextNumberOfLines">
+          <TreeViewItem DisplayName="If It Contains" SearchForText="class=&quot;price&quot;" TypeName="SharedClasses.TextOperations+IfItContains">
+            <TreeViewItem DisplayName="Get Next Line" TypeName="SharedClasses.TextOperations+GetNextLine">
+              <TreeViewItem DisplayName="Get Next Line" TypeName="SharedClasses.TextOperations+GetNextLine">
+                <TreeViewItem DisplayName="Trim" TypeName="SharedClasses.TextOperations+Trim">
+                  <TreeViewItem DisplayName="Write Complete Cell" TypeName="SharedClasses.TextOperations+WriteCompleteCell">
+                    <TreeViewItem DisplayName="Goto Next Row" TypeName="SharedClasses.TextOperations+GotoNextRow" />
+                  </TreeViewItem>
+                </TreeViewItem>
+              </TreeViewItem>
+            </TreeViewItem>
+          </TreeViewItem>
+        </TreeViewItem>
+      </TreeViewItem>
+    </TreeViewItem>
+  </TreeViewItem>
+</TreeView>

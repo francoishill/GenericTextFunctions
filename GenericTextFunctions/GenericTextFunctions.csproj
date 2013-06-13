@@ -123,11 +123,13 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Compile Include="..\..\SharedClasses\TextOperationClasses.cs">
+      <Link>TextOperationClasses.cs</Link>
+    </Compile>
     <Compile Include="..\..\SharedClasses\WindowMessagesInterop.cs">
       <Link>WindowMessagesInterop.cs</Link>
     </Compile>
     <Compile Include="TempUserMessages.cs" />
-    <Compile Include="TextOperationClasses.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
